@@ -1,0 +1,6 @@
+echo "Building client and admin before pushing..."
+
+cd client && pnpm build
+cd ../admin && pnpm build
+
+echo "Build completed. Proceeding with push..."

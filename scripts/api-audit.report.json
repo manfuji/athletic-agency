@@ -1,0 +1,1314 @@
+{
+  "generatedAt": "2026-04-30T10:45:08.075Z",
+  "counts": {
+    "called": 163,
+    "implemented": 70,
+    "missingRoute": 0,
+    "missingMethod": 0,
+    "unknownMethod": 90
+  },
+  "missingRoute": [],
+  "missingMethod": [],
+  "unknownMethod": [
+    {
+      "urlPath": "/api/admin/update/category/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/categories.ts",
+          "line": 41,
+          "raw": ".put(`/api/admin/update/category/${id}`, data)"
+        },
+        {
+          "file": "admin/src/app/api/admin/update/category/[id]/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/update/category/{id}:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 401,
+          "raw": "await fetchAPI(`/api/admin/update/category/${id}`, {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/category/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/categories.ts",
+          "line": 55,
+          "raw": ".delete(`/api/admin/delete/category/${categoryId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/category/[categoryId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/category/{categoryId}:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 414,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/delete/category/${categoryId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/competitions/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/collators.ts",
+          "line": 42,
+          "raw": ".get(`/api/admin/competitions/${competitionId}/collators`)"
+        },
+        {
+          "file": "admin/src/actions/competitions.ts",
+          "line": 27,
+          "raw": ".get(`/api/admin/competitions/${id}`)"
+        },
+        {
+          "file": "admin/src/actions/fixtures.ts",
+          "line": 98,
+          "raw": "apiClient.get(`/api/admin/competitions/${competitionId}/teams`),"
+        },
+        {
+          "file": "admin/src/actions/groups.ts",
+          "line": 100,
+          "raw": ".get(`/api/admin/competitions/${competitionId}/groups`)"
+        },
+        {
+          "file": "admin/src/actions/points.ts",
+          "line": 11,
+          "raw": ".get(`/api/admin/competitions/${competitionId}/points`)"
+        },
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 22,
+          "raw": ".get(`/api/admin/competitions/${competitionId}/teams?page=${page}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/collators/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/competitions/{competitionId}/collators:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/groups/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competitions/{competitionId}/groups:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/import/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competitions/{competitionId}/import:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/import-progress/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competitions/{competitionId}/import-progress:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/players/export/route.ts",
+          "line": 9,
+          "raw": "* /api/admin/competitions/{competitionId}/players/export:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/route.ts",
+          "line": 11,
+          "raw": "* /api/admin/competitions/{competitionId}:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competitions/[competitionId]/teams/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/competitions/{competitionId}/teams:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 195,
+          "raw": "`/api/admin/competitions/${competitionId}/teams?page=${page}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/assign-collator/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/collators.ts",
+          "line": 58,
+          "raw": ".post(`/api/admin/assign-collator/${competitionId}`, {"
+        },
+        {
+          "file": "admin/src/app/api/admin/assign-collator/[competitionId]/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/assign-collator/{competitionId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/remove/collator/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/collators.ts",
+          "line": 92,
+          "raw": ".delete(`/api/admin/remove/collator/${competitionId}`, {"
+        },
+        {
+          "file": "admin/src/app/api/admin/remove/collator/[competitionId]/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/remove/collator/{competitionId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/collator/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/collators.ts",
+          "line": 110,
+          "raw": ".delete(`/api/admin/delete/collator/${collatorId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/collator/[collatorId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/collator/{collatorId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/update/competitions/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/competitions.ts",
+          "line": 99,
+          "raw": ".post(`/api/admin/update/competitions/${id}`, data, {"
+        },
+        {
+          "file": "admin/src/app/api/admin/update/competitions/[id]/route.ts",
+          "line": 9,
+          "raw": "* /api/admin/update/competitions/{id}:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 56,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/update/competitions/${id}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/competitions/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/competitions.ts",
+          "line": 125,
+          "raw": ".delete(`/api/admin/delete/competitions/${competitionId}`)"
+        },
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 185,
+          "raw": ".delete(`/api/admin/delete/competitions/${competitionId}/teams/${teamId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/competitions/[competitionId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/competitions/{competitionId}:"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/competitions/[competitionId]/teams/[teamId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/competitions/{competitionId}/teams/{teamId}:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 86,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/delete/competitions/${competitionId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/publish/competitions/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/competitions.ts",
+          "line": 162,
+          "raw": ".post(`/api/admin/publish/competitions/${competitionId}`, {"
+        },
+        {
+          "file": "admin/src/app/api/admin/publish/competitions/[competitionId]/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/publish/competitions/{competitionId}:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 662,
+          "raw": "return fetchAPI(`/api/admin/publish/competitions/${competitionId}`, {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/update/competition-types/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/competiton-types.ts",
+          "line": 43,
+          "raw": ".patch(`/api/admin/update/competition-types/${id}`, data)"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/competition-types/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/competiton-types.ts",
+          "line": 58,
+          "raw": ".delete(`/api/admin/delete/competition-types/${id}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/competition-types/[id]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/competition-types/{id}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/fixtures/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/fixtures.ts",
+          "line": 97,
+          "raw": "apiClient.get<FixturesResponse>(`/api/admin/fixtures/${competitionId}`),"
+        },
+        {
+          "file": "admin/src/app/api/admin/fixtures/[competitionId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/fixtures/{competitionId}:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 372,
+          "raw": "`/api/admin/fixtures/${competitionId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/result/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/fixtures.ts",
+          "line": 99,
+          "raw": "apiClient.get<ResultsResponse>(`/api/admin/result/${competitionId}`),"
+        },
+        {
+          "file": "admin/src/actions/results.ts",
+          "line": 41,
+          "raw": ".get<ResultsResponse>(`/api/admin/result/${competitionId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/result/[competitionId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/result/{competitionId}:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 597,
+          "raw": "`/api/admin/result/${competitionId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/fixture/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/fixtures.ts",
+          "line": 168,
+          "raw": ".get(`/api/admin/fixture/${fixtureId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/fixture/[fixtureId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/fixture/{fixtureId}:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 437,
+          "raw": "`/api/admin/fixture/${fixtureId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/fixture/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/fixtures.ts",
+          "line": 237,
+          "raw": ".delete(`/api/admin/delete/fixture/${fixtureId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/fixture/[fixtureId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/fixture/{fixtureId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/competition_teams/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/groups.ts",
+          "line": 132,
+          "raw": "}>(`/api/admin/competition_teams/${competitionId}`)"
+        },
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 70,
+          "raw": ".get(`/api/admin/competition_teams/${competitionId}/teams`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/competition_teams/[competitionId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competition_teams/{competitionId}:"
+        },
+        {
+          "file": "admin/src/app/api/admin/competition_teams/[competitionId]/teams/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competition_teams/{competitionId}/teams:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 349,
+          "raw": "return fetchAPI(`/api/admin/competition_teams/${competitionId}/teams`, {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/news/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/news.ts",
+          "line": 63,
+          "raw": ".patch(`/api/admin/news/${newsId}`, payload)"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/players/without-team",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 11,
+          "raw": "`/api/admin/players/without-team?page=${page}`"
+        },
+        {
+          "file": "admin/src/app/api/admin/players/without-team/route.ts",
+          "line": 10,
+          "raw": "*     summary: GET handler for /api/admin/players/without-team"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 288,
+          "raw": "return fetchAPI(\"/api/admin/players/without-team\", { cache: \"no-store\" });"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/players/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 25,
+          "raw": "let url = `/api/admin/players/${playerId}`;"
+        },
+        {
+          "file": "admin/src/app/api/admin/players/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/players/{playerId}:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 295,
+          "raw": "`/api/admin/players/${playerId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/teams/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 162,
+          "raw": "`/api/admin/create/teams/${teamId}/players`,"
+        },
+        {
+          "file": "admin/src/app/api/admin/create/teams/[teamId]/players/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/teams/{teamId}/players/{playerId}:"
+        },
+        {
+          "file": "admin/src/app/api/admin/create/teams/[teamId]/players/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/teams/{teamId}/players:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 200,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/create/teams/${teamId}/players`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/update/teams/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 189,
+          "raw": "`/api/admin/update/teams/${teamId}/players/${playerId}`,"
+        },
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 228,
+          "raw": ".post(`/api/admin/update/teams/${teamId}`, formData, {"
+        },
+        {
+          "file": "admin/src/app/api/admin/update/teams/[teamId]/players/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/update/teams/{teamId}/players/{playerId}:"
+        },
+        {
+          "file": "admin/src/app/api/admin/update/teams/[teamId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/update/teams/{teamId}:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 241,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/update/teams/${teamId}/players/${playerId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/update/players/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 212,
+          "raw": "`/api/admin/update/players/${playerId}`,"
+        },
+        {
+          "file": "admin/src/app/api/admin/update/players/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/update/players/{playerId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/remove/players/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 251,
+          "raw": "const res = await apiClient.patch(`/api/admin/remove/players/${playerId}`, {"
+        },
+        {
+          "file": "admin/src/app/api/admin/remove/players/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/remove/players/{playerId}:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 322,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/remove/players/${playerId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/player/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 268,
+          "raw": "const res = await apiClient.delete(`/api/admin/delete/player/${playerId}`);"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/player/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/player/{playerId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/players",
+      "evidence": [
+        {
+          "file": "admin/src/actions/players.ts",
+          "line": 303,
+          "raw": "//   const res = await apiClient.get(`/api/admin/players?page=${page}`);"
+        },
+        {
+          "file": "admin/src/app/api/admin/players/route.ts",
+          "line": 10,
+          "raw": "*     summary: GET handler for /api/admin/players"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/match_log/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/results.ts",
+          "line": 118,
+          "raw": ".get(`/api/admin/match_log/${fixtureId}?page=${page}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/match_log/[fixtureId]/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/match_log/{fixtureId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/match_log/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/results.ts",
+          "line": 132,
+          "raw": ".delete(`/api/admin/delete/match_log/${logId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/match_log/[logId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/match_log/{logId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/player/stat/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/results.ts",
+          "line": 151,
+          "raw": ".get(`/api/admin/player/stat/${playerId}${q}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/player/stat/[playerId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/player/stat/{playerId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/teams/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 54,
+          "raw": ".get(`/api/admin/teams/${teamId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/teams/[teamId]/players/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/teams/{teamId}/players:"
+        },
+        {
+          "file": "admin/src/app/api/admin/teams/[teamId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/teams/{teamId}:"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 273,
+          "raw": "return fetchAPI(`/api/admin/teams/${teamId}`, { cache: \"no-store\" });"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/competitions/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 136,
+          "raw": "`/api/admin/create/competitions/${competitionId}/teams`,"
+        },
+        {
+          "file": "admin/src/app/api/admin/create/competitions/[competitionId]/teams/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/competitions/{competitionId}/teams:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 123,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/create/competitions/${competitionId}/teams`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/competition_teams/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 162,
+          "raw": "`/api/admin/create/competition_teams/${competitionId}/teams`,"
+        },
+        {
+          "file": "admin/src/app/api/admin/create/competition_teams/[competitionId]/teams/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/create/competition_teams/{competitionId}/teams:"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 164,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/create/competition_teams/${competitionId}/teams`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/delete/team/",
+      "evidence": [
+        {
+          "file": "admin/src/actions/teams.ts",
+          "line": 200,
+          "raw": ".delete(`/api/admin/delete/team/${teamId}`)"
+        },
+        {
+          "file": "admin/src/app/api/admin/delete/team/[teamId]/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/delete/team/{teamId}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/categories:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/categories/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/categories:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/categories",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/categories/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/categories"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 277,
+          "raw": "return fetchAPI<Category[]>(\"/api/admin/categories\", { cache: \"no-store\" });"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/collators:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/collators/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/collators:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/collators",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/collators/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/collators"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/competition-types:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/competition-types/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competition-types:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/competition-types",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/competition-types/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/competition-types"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/competitions:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/competitions/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/competitions:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/competitions",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/competitions/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/competitions"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/card:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/card/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/card:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/card",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/card/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/card"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 686,
+          "raw": "return fetchAPI(\"/api/admin/create/card\", {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/category:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/category/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/create/category:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/category",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/category/route.ts",
+          "line": 10,
+          "raw": "*     summary: POST handler for /api/admin/create/category"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 390,
+          "raw": "await fetchAPI('/api/admin/create/category', {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/competition-types:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/competition-types/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/create/competition-types:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/competition-types",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/competition-types/route.ts",
+          "line": 10,
+          "raw": "*     summary: POST handler for /api/admin/create/competition-types"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/competitions:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/competitions/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/competitions:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/competitions",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/competitions/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/competitions"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 12,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/create/competitions`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/fixture:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/fixture/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/fixture:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/fixture",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/fixture/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/fixture"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 182,
+          "raw": "\"/api/admin/create/fixture\","
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/goal:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/goal/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/goal:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/goal",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/goal/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/goal"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 675,
+          "raw": "return fetchAPI(\"/api/admin/create/goal\", {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/group-setup:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/group-setup/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/create/group-setup:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/group-setup",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/group-setup/route.ts",
+          "line": 10,
+          "raw": "*     summary: POST handler for /api/admin/create/group-setup"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 532,
+          "raw": "const response = await fetchAPI(\"/api/admin/create/group-setup\", {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/players:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/players/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/players:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/players",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/players/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/players"
+        },
+        {
+          "file": "admin/src/lib/competitionActions.ts",
+          "line": 450,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/create/players`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/result:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/result/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/result:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/result",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/result/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/result"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 620,
+          "raw": "\"/api/admin/create/result\","
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/stats:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/stats/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/stats:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/stats",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/stats/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/stats"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/subs:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/subs/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/subs:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/subs",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/subs/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/subs"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 698,
+          "raw": "return fetchAPI(\"/api/admin/create/subs\", {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/teams:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/teams/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/create/teams:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/create/teams",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/create/teams/route.ts",
+          "line": 9,
+          "raw": "*     summary: POST handler for /api/admin/create/teams"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/edge/",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/edge/[name]/route.ts",
+          "line": 12,
+          "raw": "* /api/admin/edge/{name}:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/players:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/players/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/players:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/players/without-team:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/players/without-team/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/players/without-team:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/register/collator:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/register/collator/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/register/collator:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/register/collator",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/register/collator/route.ts",
+          "line": 10,
+          "raw": "*     summary: POST handler for /api/admin/register/collator"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/stage:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/stage/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/stage:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/stage",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/stage/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/stage"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 356,
+          "raw": "return await fetchAPI<Stage[]>(\"/api/admin/stage\", {"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/storage/upload:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/storage/upload/route.ts",
+          "line": 8,
+          "raw": "* /api/admin/storage/upload:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/storage/upload",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/storage/upload/route.ts",
+          "line": 10,
+          "raw": "*     summary: POST handler for /api/admin/storage/upload"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/structures:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/structures/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/structures:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/structures",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/structures/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/structures"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/teams:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/teams/route.ts",
+          "line": 7,
+          "raw": "* /api/admin/teams:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/teams",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/admin/teams/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/admin/teams"
+        },
+        {
+          "file": "admin/src/lib/api.ts",
+          "line": 241,
+          "raw": "return fetchAPI(\"/api/admin/teams\", { next: { revalidate: 10 } });"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/swagger:",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/swagger/route.ts",
+          "line": 7,
+          "raw": "* /api/swagger:"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/swagger",
+      "evidence": [
+        {
+          "file": "admin/src/app/api/swagger/route.ts",
+          "line": 9,
+          "raw": "*     summary: GET handler for /api/swagger"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/admin/change-name/",
+      "evidence": [
+        {
+          "file": "admin/src/components/account-settings/EditProfile.tsx",
+          "line": 44,
+          "raw": "`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/change-name/${userId}`,"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/fixtures/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 136,
+          "raw": "const url = apiUrl(`/api/fixtures/${slug}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/competitions/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 152,
+          "raw": "const url = apiUrl(`/api/competitions/${slug}/teams?page=${page}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/competition_teams/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 165,
+          "raw": "const url = apiUrl(`/api/competition_teams/${slug}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/top-scorers/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 180,
+          "raw": "const url = apiUrl(`/api/top-scorers/${slug}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/top-assists/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 196,
+          "raw": "const url = apiUrl(`/api/top-assists/${slug}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/top-yellow-cards/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 212,
+          "raw": "const url = apiUrl(`/api/top-yellow-cards/${slug}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/top-red-cards/",
+      "evidence": [
+        {
+          "file": "client/src/actions/competition.ts",
+          "line": 228,
+          "raw": "const url = apiUrl(`/api/top-red-cards/${slug}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/player/",
+      "evidence": [
+        {
+          "file": "client/src/actions/player.ts",
+          "line": 24,
+          "raw": "const url = apiUrl(`/api/player/${id}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/teams/",
+      "evidence": [
+        {
+          "file": "client/src/actions/team.ts",
+          "line": 29,
+          "raw": "const url = apiUrl(`/api/teams/${id}`);"
+        }
+      ]
+    },
+    {
+      "urlPath": "/api/competitions/types",
+      "evidence": [
+        {
+          "file": "client/src/hooks/use-competition-types.ts",
+          "line": 12,
+          "raw": "const { data, isLoading } = useSWR(\"/api/competitions/types\", async () => {"
+        }
+      ]
+    }
+  ]
+}
