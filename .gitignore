@@ -46,3 +46,6 @@ next-env.d.ts
 
 # supabase local state
 supabase/.temp/
+
+# local docs / scratch
+issues.docx
