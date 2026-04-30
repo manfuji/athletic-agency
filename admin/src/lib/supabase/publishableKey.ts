@@ -1,0 +1,14 @@
+/**
+ * Browser-safe Supabase key: legacy "anon" name or dashboard "publishable" name.
+ */
+export function resolveSupabasePublishableKey(): string {
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!key) {
+    throw new Error(
+      "Set NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (from Supabase → Project Settings → API)"
+    );
+  }
+  return key;
+}
