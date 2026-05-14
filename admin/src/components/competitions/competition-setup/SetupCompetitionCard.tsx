@@ -45,7 +45,7 @@ const SetupCompetitionCard: React.FC<SetupCompetitionCardProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formatTitle, setFormatTitle] = useState<string | null>(null);
   const { data: structures } = useQuery({
-    queryKey: ['competition-structures'],
+    queryKey: ['structures'],
     queryFn: getCompetitionStructures,
     enabled: !!selectedStructure,
   });

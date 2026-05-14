@@ -2,6 +2,7 @@
 
 import { cmsUrl } from "@/lib/constant";
 import { fetchWrapper } from "@/lib/fetch-wrapper";
+import { ensureArray } from "@/lib/normalize";
 
 const EMPTY_VIDEO_ITEM: VideoLibrary = {
   id: "",
@@ -75,7 +76,9 @@ export async function getVideos(): Promise<VideosListResponse> {
   if ("error" in response) {
     return { data: [] };
   }
-  return response;
+  return {
+    data: ensureArray<VideoLibrary>(response.data),
+  };
 }
 
 export async function getLiveVideosByDate(
@@ -89,7 +92,9 @@ export async function getLiveVideosByDate(
   if ("error" in response) {
     return { data: [] };
   }
-  return response;
+  return {
+    data: ensureArray<LiveVideo>(response.data),
+  };
 }
 export async function getSingleLiveVideo(
   slug: string
@@ -114,5 +119,7 @@ export async function getLiveVideosCalendar(): Promise<LiveVideoCalendarResponse
   if ("error" in response) {
     return { data: [] };
   }
-  return response;
+  return {
+    data: ensureArray(response.data),
+  };
 }

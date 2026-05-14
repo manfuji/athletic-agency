@@ -33,7 +33,20 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { fetchTeams, fetchTeamDetails } from '@/actions/teams';
 import { getImageUrl } from '@/lib/api';
+import { ensureArray } from '@/lib/normalize';
 import { Team } from '@/types/teams';
+
+function teamPlayerCount(teamDetails: unknown): number {
+  if (
+    teamDetails &&
+    typeof teamDetails === 'object' &&
+    'error' in teamDetails
+  ) {
+    return 0;
+  }
+  const row = teamDetails as { players?: unknown };
+  return ensureArray(row?.players).length;
+}
 export interface TeamType {
   id: string;
   name: string;
@@ -90,7 +103,7 @@ export function DataTable<TData extends TeamType, TValue>({
               name: team.name,
               code: team.shortCode,
               icon: getImageUrl(team.logo ?? null) || '/TeamLogo.png',
-              players: teamDetails.players.length,
+              players: teamPlayerCount(teamDetails),
               joined: new Date(team.created_at),
               slug: team.slug,
             };
@@ -117,7 +130,7 @@ export function DataTable<TData extends TeamType, TValue>({
             name: team.name,
             code: team.shortCode,
             icon: getImageUrl(team.logo ?? null) || '/TeamLogo.svg',
-            players: teamDetails.players.length,
+            players: teamPlayerCount(teamDetails),
             joined: new Date(team.created_at),
             slug: team.slug,
           };

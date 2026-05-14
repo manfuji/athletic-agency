@@ -150,7 +150,7 @@ export default function PlayersTable({ initialResponse }: PlayersTableProps) {
       ) : displayPlayers.length === 0 ? (
         <div className="bg-white w-full rounded-lg shadow-md border border-[#e9e9e9] p-12 mt-4">
           <p className="text-center mt-4 font-evogria text-[17px] text-[#302464]">
-            {searchQuery && !playersData?.data.length
+            {searchQuery && !(playersData?.data?.length)
               ? "No players found."
               : searchQuery
                 ? `No players found for "${searchQuery}"`

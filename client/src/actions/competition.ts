@@ -2,6 +2,7 @@
 
 import { apiUrl, cmsUrl } from "@/lib/constant";
 import { fetchWrapper } from "@/lib/fetch-wrapper";
+import { ensureArray } from "@/lib/normalize";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 function slugify(input: string): string {
@@ -142,7 +143,9 @@ export async function getFixturesResults(
     return EMPTY_GAME_SCHEDULE;
   }
 
-  return response;
+  return {
+    data: ensureArray<GameDate>(response.data),
+  };
 }
 
 export async function getTeams(
@@ -158,7 +161,11 @@ export async function getTeams(
     return { ...EMPTY_TEAM_PAGINATION, current_page: page || 1 };
   }
 
-  return response;
+  return {
+    ...response,
+    data: ensureArray<Team>(response.data),
+    links: ensureArray<PaginationLink>(response.links),
+  };
 }
 
 export async function getStandings(slug: string): Promise<LeagueTable> {
@@ -171,7 +178,9 @@ export async function getStandings(slug: string): Promise<LeagueTable> {
     return EMPTY_LEAGUE_TABLE;
   }
 
-  return response;
+  return {
+    groups: ensureArray<Groups>(response.groups),
+  };
 }
 
 export async function getCompetitionTopScorers(slug: string): Promise<{
@@ -187,7 +196,9 @@ export async function getCompetitionTopScorers(slug: string): Promise<{
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getCompetitionTopAssists(slug: string): Promise<{
@@ -203,7 +214,9 @@ export async function getCompetitionTopAssists(slug: string): Promise<{
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getCompetitionTopYellowCards(slug: string): Promise<{
@@ -219,7 +232,9 @@ export async function getCompetitionTopYellowCards(slug: string): Promise<{
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getCompetitionTopRedCards(slug: string): Promise<{
@@ -235,7 +250,9 @@ export async function getCompetitionTopRedCards(slug: string): Promise<{
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getCompetitionNews(
@@ -278,7 +295,9 @@ export async function getCompetitionHighlights(
   if ("error" in response) {
     return EMPTY_VIDEO_LIST;
   }
-  return response;
+  return {
+    data: ensureArray<VideoLibrary>(response.data),
+  };
 }
 
 export async function getCompetitionTypes(): Promise<CompetitionType[]> {

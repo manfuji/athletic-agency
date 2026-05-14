@@ -19,7 +19,10 @@ export default function VideoLibrary({ data }: { data: VideoLibrary[] }) {
     "name"
   );
 
-  const categories = ["All", ...data?.map((item) => item?.category?.name)];
+  const categories = [
+    "All",
+    ...(data?.map((item) => item?.category?.name) ?? []),
+  ];
 
   return (
     <div>

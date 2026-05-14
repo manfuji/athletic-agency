@@ -1,5 +1,6 @@
 import { getAdminServices } from "@/server/composition/adminServices";
 import { runAdminApi } from "@/server/http/routeHelpers";
+import { createStructureBodySchema } from "@/server/schemas/structure";
 
 
 /**
@@ -17,5 +18,14 @@ import { runAdminApi } from "@/server/http/routeHelpers";
 export async function GET() {
   return runAdminApi(async () =>
     getAdminServices().competitionService.listStructures()
+  );
+}
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const parsed = createStructureBodySchema.parse(body);
+
+  return runAdminApi(async () =>
+    getAdminServices().competitionService.createStructure(parsed)
   );
 }

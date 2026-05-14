@@ -2,6 +2,7 @@
 
 import { apiUrl } from "@/lib/constant";
 import { fetchWrapper } from "@/lib/fetch-wrapper";
+import { ensureArray } from "@/lib/normalize";
 
 const EMPTY_TEAM_PROFILE: TeamProfile = {
   id: "",
@@ -35,7 +36,19 @@ export async function getTeamProfile(id: string): Promise<TeamProfile> {
     return { ...EMPTY_TEAM_PROFILE, id, slug: id };
   }
 
-  return response;
+  const profile = response as TeamProfile;
+  const rawPlayers = profile.players ?? {};
+  const players = Object.fromEntries(
+    Object.entries(rawPlayers).map(([key, val]) => [
+      key,
+      ensureArray<Player>(val),
+    ]),
+  ) as TeamProfile["players"];
+
+  return {
+    ...profile,
+    players,
+  };
 }
 
 export async function getTeamTopScorers(
@@ -51,7 +64,9 @@ export async function getTeamTopScorers(
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getTeamTopAssists(
@@ -67,7 +82,9 @@ export async function getTeamTopAssists(
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getTeamTopYellowCards(
@@ -99,7 +116,9 @@ export async function getTeamTopRedCards(
     return EMPTY_STATS;
   }
 
-  return response;
+  return {
+    data: ensureArray<StatsType>(response.data),
+  };
 }
 
 export async function getTeamById(

@@ -222,6 +222,10 @@ export class CompetitionService {
     return this.structures.listAll();
   }
 
+  createStructure(input: { name: string; description: string }) {
+    return this.structures.insert(input);
+  }
+
   async importStats(competitionId: string, formData: FormData) {
     const file = formFile(formData, "file");
     if (!file) throw new ServiceError("file is required", 400);

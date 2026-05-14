@@ -11,9 +11,11 @@ export const useFilterCategory = <
 ) => {
   const [category, setCategory] = useState<string>("");
 
-  const filteredData = data?.filter((item: T) => {
+  const list = data ?? [];
+
+  const filteredData = list.filter((item: T) => {
     if (!category.trim() || category === "All") {
-      return item;
+      return true;
     } else {
       return String(item[key][nestedKey]) === category;
     }
@@ -29,9 +31,11 @@ export const useFilterCategory = <
 export const useFilterTeam = <T, K extends keyof T>(data: T[], key: K) => {
   const [team, setTeam] = useState<string>("");
 
-  const filteredData = data?.filter((item: T) => {
+  const list = data ?? [];
+
+  const filteredData = list.filter((item: T) => {
     if (!team.trim()) {
-      return item;
+      return true;
     } else {
       return String(item[key]).toLowerCase().includes(team.toLowerCase());
     }

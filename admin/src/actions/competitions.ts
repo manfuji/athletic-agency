@@ -205,6 +205,30 @@ export async function getCompetitionStructures() {
     });
 }
 
+export async function createCompetitionStructure(input: {
+  name: string;
+  description?: string;
+}) {
+  return await apiClient
+    .post("/api/admin/structures", {
+        name: input.name,
+        description: input.description ?? "",
+      })
+    .then((res) => unwrapApi<unknown>(res.data))
+    .catch((error) => {
+      console.error("Error creating competition structure:", error);
+      return {
+        error:
+          error instanceof AxiosError
+            ? error.response?.data?.message ||
+              error.response?.data?.error ||
+              error.message ||
+              "Error creating structure"
+            : "Error creating structure",
+      };
+    });
+}
+
 export async function importCompetitionStats(competitionId: string, file: File) {
   const formData = new FormData();
   

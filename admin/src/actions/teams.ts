@@ -53,7 +53,7 @@ export async function fetchTeamDetails(teamId: string) {
   return await apiClient
     .get(`/api/admin/teams/${teamId}`)
     .then((res) => {
-      return res.data;
+      return unwrapApi<Record<string, unknown>>(res.data);
     })
     .catch((error) => {
       console.error("Error fetching team details:", error);

@@ -1,5 +1,6 @@
 import { fetchTeams, fetchTeamDetails } from '@/actions/teams';
 import { getImageUrl } from '@/lib/api';
+import { ensureArray } from '@/lib/normalize';
 import { columns, TeamType } from '@/lib/team/columns';
 import { DataTable } from '@/lib/team/data-table';
 import { redirect } from 'next/navigation';
@@ -31,7 +32,7 @@ export default async function CompetitionTeamsPage({
           name: team.name,
           code: team.shortCode,
           icon: getImageUrl(team.logo) || '/Avatar.png',
-          players: teamDetails.players.length,
+          players: ensureArray(teamDetails.players).length,
           joined: new Date(team.created_at),
           slug: team.slug,
         };

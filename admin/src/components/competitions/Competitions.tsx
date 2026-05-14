@@ -103,7 +103,7 @@ export default function Competitions({
             <CompetitionCardSkeleton />
             <CompetitionCardSkeleton />
           </>
-        ) : competitions.length === 0 ? (
+        ) : (competitions ?? []).length === 0 ? (
           <div className="bg-white w-[80%] mx-auto ml-0 text-center rounded-lg shadow-md border border-[#e9e9e9] p-12 mt-4">
             <p className="text-lg text-gray-600 font-semibold font-evogria">
               {userRole === "collator"
