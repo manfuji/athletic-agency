@@ -646,6 +646,10 @@ export default function CreateCompetitionModal({
                       width={64}
                       height={64}
                       className="w-16 h-16 object-cover rounded-md mb-2"
+                      unoptimized={
+                        competition.image.startsWith("data:") ||
+                        competition.image.startsWith("blob:")
+                      }
                     />
                     <p className="text-[12px] text-[#344054] font-inter">
                       {uploadedFileName}

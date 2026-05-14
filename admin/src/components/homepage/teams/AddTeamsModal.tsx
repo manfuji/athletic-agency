@@ -177,6 +177,10 @@ export default function AddTeamsModal({
                     className="h-full w-full object-cover rounded-full"
                     width={160}
                     height={160}
+                    unoptimized={
+                      team.logo.startsWith("data:") ||
+                      team.logo.startsWith("blob:")
+                    }
                   />
                 )}
                 <input
@@ -293,6 +297,10 @@ export default function AddTeamsModal({
                     className="h-full w-full object-cover rounded-md"
                     width={300}
                     height={160}
+                    unoptimized={
+                      team.coverPhoto.startsWith("data:") ||
+                      team.coverPhoto.startsWith("blob:")
+                    }
                   />
                 )}
                 <input

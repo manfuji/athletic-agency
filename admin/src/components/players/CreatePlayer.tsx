@@ -275,6 +275,10 @@ export default function CreatePlayer({
                     className="h-full w-full rounded-full object-cover"
                     width={160}
                     height={160}
+                    unoptimized={
+                      player.image.startsWith("data:") ||
+                      player.image.startsWith("blob:")
+                    }
                   />
                 )}
                 <input

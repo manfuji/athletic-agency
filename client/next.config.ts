@@ -1,9 +1,37 @@
 import type { NextConfig } from "next";
 
+function supabaseStorageRemotePattern(): {
+  protocol: "https";
+  hostname: string;
+  pathname: string;
+} | null {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!raw) return null;
+  try {
+    const { hostname } = new URL(raw);
+    if (!hostname) return null;
+    return {
+      protocol: "https",
+      hostname,
+      pathname: "/storage/v1/object/public/**",
+    };
+  } catch {
+    return null;
+  }
+}
+
+const supabasePattern = supabaseStorageRemotePattern();
+
 const nextConfig: NextConfig = {
   images: {
     qualities: [75, 100],
     remotePatterns: [
+      ...(supabasePattern ? [supabasePattern] : []),
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
       {
         protocol: "https",
         hostname: "res.cloudinary.com",

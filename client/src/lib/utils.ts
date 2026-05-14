@@ -133,9 +133,23 @@ export const getImage = (asset: string, placeHolder: string): string => {
     // Ignore decode error
   }
 
-  const encodedAsset = decodedAsset.split("/").map(part => encodeURIComponent(part)).join("/");
+  const encodedAsset = decodedAsset
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
 
-  return `${process.env.NEXT_PUBLIC_STORAGE_URL}/${encodedAsset}`;
+  const storageBase =
+    process.env.NEXT_PUBLIC_STORAGE_URL?.replace(/\/$/, "") ||
+    (() => {
+      const su = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+      return su ? `${su}/storage/v1/object/public/uploads` : "";
+    })();
+
+  if (!storageBase) {
+    return placeHolder;
+  }
+
+  return `${storageBase}/${encodedAsset}`;
 };
 
 export function formatDateRangeWithOrdinal(

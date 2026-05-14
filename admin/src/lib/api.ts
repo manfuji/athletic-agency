@@ -63,14 +63,38 @@ export const getImageUrl = (path: string | null | undefined) => {
     decodedPath.toLowerCase().includes(pattern.toLowerCase())
   );
 
-  const baseUrl = shouldUseSpacesUrl
-    ? process.env.NEXT_PUBLIC_SPACES_BASE_URL
-    : `${BASE_URL}/uploads`;
-
   // Encode the decoded path so S3 and Next Image Optimization handle spaces correctly
-  const encodedPath = decodedPath.split("/").map(part => encodeURIComponent(part)).join("/");
+  const encodedPath = decodedPath
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
 
-  return `${baseUrl}/${encodedPath}`;
+  if (shouldUseSpacesUrl) {
+    const spacesBase = process.env.NEXT_PUBLIC_SPACES_BASE_URL;
+    if (spacesBase) {
+      return `${spacesBase.replace(/\/$/, "")}/${encodedPath}`;
+    }
+    const apiUploadsBase = `${BASE_URL.replace(/\/$/, "")}/uploads`;
+    return `${apiUploadsBase}/${encodedPath}`;
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  if (supabaseUrl) {
+    const bucket = "uploads";
+    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${encodedPath}`;
+  }
+
+  const apiUploadsBase = `${BASE_URL.replace(/\/$/, "")}/uploads`;
+  if (
+    process.env.NODE_ENV === "development" &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    BASE_URL.includes("localhost")
+  ) {
+    console.warn(
+      "[getImageUrl] NEXT_PUBLIC_SUPABASE_URL is unset; relative keys resolve to localhost /uploads, which will not serve Supabase objects. Set NEXT_PUBLIC_SUPABASE_URL."
+    );
+  }
+  return `${apiUploadsBase}/${encodedPath}`;
 };
 
 const defaultHeaders = {
