@@ -6,7 +6,7 @@ import { getAllTeamsForCompetition, fetchTeamDetails } from "@/actions/teams";
 import { getFixtures } from "@/actions/fixtures";
 import { CompetitionForForm } from "@/components/competitions/competition-setup/SetupCompetition";
 import { getServerAppSession } from "@/lib/auth/server-session";
-import { ensureArray } from "@/lib/normalize";
+import { ensureArray, teamDetailsPlayerCount } from "@/lib/normalize";
 
 export default async function CompetitionSetupPage({
   params,
@@ -46,7 +46,7 @@ export default async function CompetitionSetupPage({
     );
     const teamDetailsList = await Promise.all(teamDetailsPromises);
     const hasPlayers = teamDetailsList.some(
-      (teamDetails) => teamDetails.players && teamDetails.players.length > 0
+      (teamDetails) => teamDetailsPlayerCount(teamDetails) > 0
     );
 
     const hasFixtures = Object.values(fixturesData).some(

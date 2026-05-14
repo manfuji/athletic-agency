@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Team, Group, KnockoutGame } from "@/types/fixtures";
+import { Team, Group, KnockoutGame, Stage } from "@/types/fixtures";
 // import { fetchTeams, saveGroupSetup, fetchGroups } from '@/lib/api';
 import {
   deleteGroupSetup,
@@ -9,12 +10,15 @@ import {
   updateGroupSetup,
 } from "@/actions/groups";
 import { fetchTeams } from "@/actions/teams";
+import { fetchStages } from "@/actions/stages";
 import { ensureArray } from "@/lib/normalize";
 
 interface UseGroupsReturn {
   groups: Group[];
   knockoutGames: KnockoutGame[];
   teams: Team[];
+  stages: Stage[];
+  isStagesLoading: boolean;
   isLoading: boolean;
   isSaving: boolean;
   isAddingGroup: boolean;
@@ -44,6 +48,11 @@ export const useGroups = (competitionId: string): UseGroupsReturn => {
   const [isSaving, setIsSaving] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [isAddingKnockoutGame, setIsAddingKnockoutGame] = useState(false);
+
+  const { data: stages = [], isLoading: isStagesLoading } = useQuery({
+    queryKey: ["stages"],
+    queryFn: fetchStages,
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -103,16 +112,8 @@ export const useGroups = (competitionId: string): UseGroupsReturn => {
   const addGroup = async () => {
     setIsAddingGroup(true);
     try {
-      const { fetchStages } = await import("@/actions/stages");
-      const stages = await fetchStages();
-
-      let stageId = "";
-      if (Array.isArray(stages) && stages.length > 0) {
-        stageId = stages[0].id;
-        console.log(`Creating new group with stage: ${stages[0].name} (${stageId})`);
-      } else {
-        console.warn("No stages available. Group will be created without stage_id.");
-        toast.error("No stages available. Please ensure stages are set up first.");
+      const stageId = stages[0]?.id ?? "";
+      if (!stageId) {
         return;
       }
 
@@ -184,14 +185,10 @@ export const useGroups = (competitionId: string): UseGroupsReturn => {
   const addKnockoutGame = async () => {
     setIsAddingKnockoutGame(true);
     try {
-      const { fetchStages } = await import("@/actions/stages");
-      const stages = await fetchStages();
       const fallbackStageId =
-        groups[0]?.stage_id ??
-        (Array.isArray(stages) && stages.length > 0 ? stages[0].id : "");
+        groups[0]?.stage_id ?? stages[0]?.id ?? "";
 
       if (!fallbackStageId) {
-        toast.error("No stages available. Please set up stages first.");
         return;
       }
 
@@ -408,6 +405,8 @@ export const useGroups = (competitionId: string): UseGroupsReturn => {
     groups,
     knockoutGames,
     teams,
+    stages,
+    isStagesLoading,
     isLoading,
     isSaving,
     isAddingGroup,

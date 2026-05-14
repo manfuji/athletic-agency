@@ -6,4 +6,8 @@ export class StageService {
   list() {
     return this.stages.listAll();
   }
+
+  create(input: { name: string }) {
+    return this.stages.insert(input);
+  }
 }

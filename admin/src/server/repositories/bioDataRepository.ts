@@ -110,7 +110,7 @@ export class BioDataSupabaseRepository implements IBioDataRepository {
     const total = count ?? 0;
     return {
       current_page: page,
-      data: (data ?? []) as BioDataRow[],
+      data: (data ?? []) as unknown as BioDataRow[],
       per_page: perPage,
       total,
       last_page: total ? Math.max(1, Math.ceil(total / perPage)) : 1,
@@ -145,7 +145,7 @@ export class BioDataSupabaseRepository implements IBioDataRepository {
       .maybeSingle();
 
     if (error) throw new ServiceError(error.message, 500);
-    return (data as BioDataRow | null) ?? null;
+    return ((data as unknown) as BioDataRow | null) ?? null;
   }
 
   async update(bioDataId: string, patch: BioDataUpdatePatch): Promise<void> {

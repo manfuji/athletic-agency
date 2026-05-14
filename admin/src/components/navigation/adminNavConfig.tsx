@@ -1,5 +1,5 @@
 import type React from "react";
-import { BadgeCheck, Calendar, Clipboard, Database, KeyRound, List } from "lucide-react";
+import { BadgeCheck, Calendar, Clipboard, Database, KeyRound, List, Layers, LayoutGrid } from "lucide-react";
 
 export interface AdminNavItem {
   name: string;
@@ -29,6 +29,8 @@ export const adminNavGroups: AdminNavGroup[] = [
     icon: <List className="h-4 w-4" />,
     items: [
       { name: "Event Seasons", icon: <Calendar className="h-4 w-4" />, path: "/event-seasons" },
+      { name: "Stages", icon: <Layers className="h-4 w-4" />, path: "/stages" },
+      { name: "Structures", icon: <LayoutGrid className="h-4 w-4" />, path: "/structures" },
       { name: "Positions", icon: <List className="h-4 w-4" />, path: "/positions" },
       { name: "Nationalities", icon: <List className="h-4 w-4" />, path: "/nationalities" },
       { name: "Affiliations", icon: <List className="h-4 w-4" />, path: "/affiliations" },

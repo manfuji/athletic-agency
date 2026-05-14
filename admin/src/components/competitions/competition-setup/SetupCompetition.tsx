@@ -16,7 +16,7 @@ import {
 } from "@/actions/competitions";
 import { getAllTeamsForCompetition, fetchTeamDetails } from "@/actions/teams";
 import { getFixtures } from "@/actions/fixtures";
-import { ensureArray } from "@/lib/normalize";
+import { ensureArray, teamDetailsPlayerCount } from "@/lib/normalize";
 
 const CreateCompetitionModal = dynamic(() => import("../CreateCompetitions"), {
   ssr: false,
@@ -143,7 +143,7 @@ export default function SetupCompetition({
         allTeams.map((team) => fetchTeamDetails(team.id))
       );
       const hasPlayers = teamDetailsList.some(
-        (teamDetails) => teamDetails.players && teamDetails.players.length > 0
+        (teamDetails) => teamDetailsPlayerCount(teamDetails) > 0
       );
 
       const hasFixtures = Object.values(fixturesData).some(

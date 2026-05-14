@@ -48,15 +48,13 @@ export const useFixtures = (competitionId: string): UseFixturesReturn => {
   });
 
   const { data: stages = [] } = useQuery({
-    queryKey: ["stages", competitionId],
+    queryKey: ["stages"],
     queryFn: async () => {
       const result = await fetchStages();
-      // Ensure we always return an array, even if fetchStages returns an error object
       const allStages = Array.isArray(result) ? result : [];
-      
+
       return allStages;
     },
-    enabled: true, // Always fetch stages
   });
 
   // Log stage information for debugging

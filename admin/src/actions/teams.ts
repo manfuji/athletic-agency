@@ -49,11 +49,13 @@ export async function fetchAllTeams(): Promise<Team[]> {
     });
 }
 
-export async function fetchTeamDetails(teamId: string) {
+export async function fetchTeamDetails(
+  teamId: string
+): Promise<Team | { error: string }> {
   return await apiClient
     .get(`/api/admin/teams/${teamId}`)
     .then((res) => {
-      return unwrapApi<Record<string, unknown>>(res.data);
+      return unwrapApi<Team>(res.data);
     })
     .catch((error) => {
       console.error("Error fetching team details:", error);

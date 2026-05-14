@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { useGroups } from '@/hooks/useGroups';
 import CustomButton from '@/reusables/CustomButton';
 import { GroupCard } from './GroupCard';
+import { InlineReferenceCreate } from '@/components/reference/InlineReferenceCreate';
+import { createStage } from '@/actions/stages';
 
 interface GroupsTabProps {
   competitionId: string;
@@ -21,6 +23,8 @@ export default function GroupsTab({ competitionId }: GroupsTabProps) {
     groups,
     knockoutGames,
     teams,
+    stages,
+    isStagesLoading,
     isLoading,
     isSaving,
     isAddingGroup,
@@ -80,7 +84,12 @@ export default function GroupsTab({ competitionId }: GroupsTabProps) {
             <Plus className="w-20 h-20 text-gray-400 mb-2" />
             <Button
               onClick={addGroup}
-              disabled={isLoading || isSaving || isAddingGroup}
+              disabled={
+                isLoading ||
+                isSaving ||
+                isAddingGroup ||
+                (!isStagesLoading && stages.length === 0)
+              }
               isLoading={isAddingGroup}
               loadingText="Adding..."
               className="bg-white text-[#344054] border px-4 py-2 font-evogria rounded-lg font-[14px]"
@@ -117,7 +126,12 @@ export default function GroupsTab({ competitionId }: GroupsTabProps) {
             <Plus className="w-20 h-20 text-gray-400 mb-2" />
             <Button
               onClick={addKnockoutGame}
-              disabled={isLoading || isSaving || isAddingKnockoutGame}
+              disabled={
+                isLoading ||
+                isSaving ||
+                isAddingKnockoutGame ||
+                (!isStagesLoading && stages.length === 0)
+              }
               isLoading={isAddingKnockoutGame}
               loadingText="Adding..."
               className="bg-white text-[#344054] border px-4 py-2 font-evogria rounded-lg font-[14px]"
@@ -144,6 +158,15 @@ export default function GroupsTab({ competitionId }: GroupsTabProps) {
           disabled={isLoading || isSaving}
         />
       </div>
+      {!isStagesLoading && stages.length === 0 ? (
+        <InlineReferenceCreate
+          title="No match stages yet"
+          helpText="Create at least one stage (for example Group stage or Knockout) before adding groups. You can also manage stages under Reference in the sidebar."
+          namePlaceholder='e.g. "Group stage"'
+          queryKeysToInvalidate={[["stages"]]}
+          onSubmit={(payload) => createStage(payload)}
+        />
+      ) : null}
       {isLoading ? (
         <div className="rounded-lg border border-[#e9e9e9] bg-white p-6 text-sm text-[#667085]">
           Loading groups and teams...

@@ -1,36 +1,41 @@
 "use server";
 
 import apiClient from "@/lib/axios";
+import { unwrapApi } from "@/lib/unwrapApi";
 import { Stage } from "@/types/fixtures";
+import { AxiosError } from "axios";
 
 export async function fetchStages(): Promise<Stage[]> {
   return await apiClient
     .get("/api/admin/stage")
     .then((res) => {
-      // Handle different possible response structures
-      const data = res.data;
-      
-      // If response is wrapped in a data property
-      if (data && Array.isArray(data.data)) {
-        return data.data;
+      const raw = unwrapApi<unknown>(res.data);
+      if (Array.isArray(raw)) {
+        return raw as Stage[];
       }
-      
-      // If response is directly an array
-      if (Array.isArray(data)) {
-        return data;
-      }
-      
-      // If response has a different structure, try to extract stages
-      if (data && Array.isArray(data.stages)) {
-        return data.stages;
-      }
-      
-      console.warn("Unexpected stages API response structure:", data);
+      console.warn("Unexpected stages API response after unwrap:", raw);
       return [];
     })
     .catch((error) => {
       console.error("Error fetching stages:", error);
-      // Return empty array instead of error object to prevent type issues
       return [];
+    });
+}
+
+export async function createStage(input: { name: string }) {
+  return await apiClient
+    .post("/api/admin/stage", { name: input.name })
+    .then((res) => unwrapApi<Stage>(res.data))
+    .catch((error) => {
+      console.error("Error creating stage:", error);
+      return {
+        error:
+          error instanceof AxiosError
+            ? (error.response?.data as { message?: string })?.message ||
+              (error.response?.data as { error?: string })?.error ||
+              error.message ||
+              "Error creating stage"
+            : "Error creating stage",
+      };
     });
 }

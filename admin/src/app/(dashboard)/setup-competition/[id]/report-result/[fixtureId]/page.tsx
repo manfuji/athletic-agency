@@ -1,7 +1,8 @@
 import ReportResultContent from '../ReportResultContent';
 import { fetchFixtureDetails } from '@/actions/fixtures';
-import {fetchTeamDetails} from '@/actions/teams'
+import { fetchTeamDetails } from '@/actions/teams';
 import { Fixture } from '@/types/fixtures';
+import { ensureArray } from '@/lib/normalize';
 interface Player {
   id: string;
   name: string;
@@ -26,24 +27,65 @@ export default async function ReportResultPage({
   const homeTeamDetails = await fetchTeamDetails(fixtureData.home_team.id);
   const awayTeamDetails = await fetchTeamDetails(fixtureData.away_team.id);
 
+  const home =
+    homeTeamDetails &&
+    typeof homeTeamDetails === "object" &&
+    !("error" in homeTeamDetails)
+      ? (homeTeamDetails as {
+          id: string;
+          name: string;
+          players?: unknown;
+        })
+      : {
+          id: fixtureData.home_team.id,
+          name:
+            "name" in fixtureData.home_team &&
+            typeof fixtureData.home_team.name === "string"
+              ? fixtureData.home_team.name
+              : "",
+          players: [] as { id: string; name: string }[],
+        };
+
+  const away =
+    awayTeamDetails &&
+    typeof awayTeamDetails === "object" &&
+    !("error" in awayTeamDetails)
+      ? (awayTeamDetails as {
+          id: string;
+          name: string;
+          players?: unknown;
+        })
+      : {
+          id: fixtureData.away_team.id,
+          name:
+            "name" in fixtureData.away_team &&
+            typeof fixtureData.away_team.name === "string"
+              ? fixtureData.away_team.name
+              : "",
+          players: [] as { id: string; name: string }[],
+        };
+
+  const homePlayersList = ensureArray<{ id: string; name: string }>(home.players);
+  const awayPlayersList = ensureArray<{ id: string; name: string }>(away.players);
+
   const players: Player[] = [
-    ...homeTeamDetails.players.map((player: Player) => ({
+    ...homePlayersList.map((player) => ({
       id: player.id,
       name: player.name,
-      teamId: homeTeamDetails.id,
-      teamName: homeTeamDetails.name,
+      teamId: home.id,
+      teamName: home.name,
     })),
-    ...awayTeamDetails.players.map((player: Player) => ({
+    ...awayPlayersList.map((player) => ({
       id: player.id,
       name: player.name,
-      teamId: awayTeamDetails.id,
-      teamName: awayTeamDetails.name,
+      teamId: away.id,
+      teamName: away.name,
     })),
   ];
 
   const teams: Team[] = [
-    { id: homeTeamDetails.id, name: homeTeamDetails.name },
-    { id: awayTeamDetails.id, name: awayTeamDetails.name },
+    { id: home.id, name: home.name },
+    { id: away.id, name: away.name },
   ];
 
   return (

@@ -32,6 +32,8 @@ import {
   GroupStanding,
 } from "@/types/fixtures";
 import { fixtureSchema } from "@/lib/validationSchema";
+import { InlineReferenceCreate } from "@/components/reference/InlineReferenceCreate";
+import { createStage } from "@/actions/stages";
 
 interface FormFieldProps {
   label: string;
@@ -322,6 +324,15 @@ export default function CreateMatchModal({
                 Create Matches
               </DialogTitle>
             </DialogHeader>
+            {stages.length === 0 ? (
+              <InlineReferenceCreate
+                title="Create a match stage first"
+                helpText="Every fixture needs a stage (for example Group stage or Knockout). Add one here, then select it below."
+                namePlaceholder='e.g. "Group stage"'
+                queryKeysToInvalidate={[["stages"]]}
+                onSubmit={(payload) => createStage(payload)}
+              />
+            ) : null}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
               {fields.map((field) => (
                 <FormField key={field.id} {...field} />

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import CreateMatchModal from './CreateMatchModal';
 import { FixtureList } from './FixtureList';
 import { useFixtures } from '@/hooks/useFixtures';
+import { InlineReferenceCreate } from '@/components/reference/InlineReferenceCreate';
+import { createStage } from '@/actions/stages';
 
 interface FixturesTabProps {
   competitionId: string;
@@ -50,6 +52,15 @@ export default function FixturesTab({ competitionId }: FixturesTabProps) {
 
   return (
     <div className="rounded-lg">
+      {stages.length === 0 ? (
+        <InlineReferenceCreate
+          title="No match stages yet"
+          helpText="Create at least one stage before scheduling fixtures. You can also manage stages under Reference in the sidebar."
+          namePlaceholder='e.g. "Group stage"'
+          queryKeysToInvalidate={[["stages"]]}
+          onSubmit={(payload) => createStage(payload)}
+        />
+      ) : null}
       <div className="flex items-center gap-4 mb-6">
         <SearchInput
           placeholder="Search by team name"

@@ -548,7 +548,9 @@ export const saveGroupSetup = async (
       stageId = stages[0].id;
       console.log(`Using first available stage: ${stages[0].name} (${stageId})`);
     } else {
-      toast.error("No stages available. Please ensure stages are set up for this competition.");
+      toast.error(
+        "No stages available. Add a stage under Reference > Stages or from the Fixtures / Groups setup screen, then try again."
+      );
       throw new Error("No stages available. Cannot create group without a valid stage_id.");
     }
   }

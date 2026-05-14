@@ -56,7 +56,8 @@ export async function saveGroupSetup(competitionId: string, group: Group) {
         } else {
           console.error("No stages available. Cannot create group without a valid stage_id.");
           return {
-            error: "No stages available. Please ensure stages are set up for this competition.",
+            error:
+              "No stages available. Add at least one stage under Reference > Stages (or use the inline form on the Fixtures / Groups tabs), then try again.",
           };
         }
       }
