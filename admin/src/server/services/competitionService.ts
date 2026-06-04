@@ -1,9 +1,15 @@
 import { ServiceError } from "@/server/errors/serviceError";
 import { formFile, formString, uniqueSlug } from "@/server/lib/formDataParse";
+import {
+  parseUploadFile,
+  statPatchFromRow,
+  PLAYER_STATS_EXPORT_COLUMNS,
+} from "@/server/lib/parseSpreadsheet";
 import type {
   ICompetitionRepository,
   ICompetitionTeamRepository,
 } from "@/server/repositories/competitionRepository";
+import type { ICompetitionImportRepository } from "@/server/repositories/competitionImportRepository";
 import type { IPlayerRepository } from "@/server/repositories/playerRepository";
 import type { IStorageRepository } from "@/server/repositories/storageRepository";
 import type { IStructureRepository } from "@/server/repositories/structureRepository";
@@ -11,26 +17,19 @@ import type { TeamService } from "@/server/services/teamService";
 
 const DEFAULT_PER_PAGE = 15;
 const UPLOAD_BUCKET = "uploads";
-const importProgressStore = new Map<
-  string,
-  {
-    competition_id: string;
-    status: "pending" | "processing" | "success" | "failed";
-    progress: number;
-    message?: string;
-    link?: string | null;
-    updated_at: string;
-  }
->();
 
-function toCsv(rows: Record<string, unknown>[]): string {
-  if (rows.length === 0) return "id,name,team_id,position\n";
-  const keys = Array.from(
-    rows.reduce((acc, r) => {
-      Object.keys(r).forEach((k) => acc.add(k));
-      return acc;
-    }, new Set<string>())
-  );
+function toCsv(rows: Record<string, unknown>[], columns?: readonly string[]): string {
+  const keys =
+    columns ??
+    Array.from(
+      rows.reduce((acc, r) => {
+        Object.keys(r).forEach((k) => acc.add(k));
+        return acc;
+      }, new Set<string>())
+    );
+  if (rows.length === 0) {
+    return `${(columns ?? ["id", "name", "team_id", "position"]).join(",")}\n`;
+  }
   const esc = (v: unknown) => {
     const s = v == null ? "" : String(v);
     if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -50,7 +49,8 @@ export class CompetitionService {
     private readonly teamService: TeamService,
     private readonly storage: IStorageRepository,
     private readonly structures: IStructureRepository,
-    private readonly players: IPlayerRepository
+    private readonly players: IPlayerRepository,
+    private readonly importJobs: ICompetitionImportRepository
   ) {}
 
   list() {
@@ -230,60 +230,192 @@ export class CompetitionService {
     const file = formFile(formData, "file");
     if (!file) throw new ServiceError("file is required", 400);
 
-    importProgressStore.set(competitionId, {
-      competition_id: competitionId,
+    await this.importJobs.upsert(competitionId, {
       status: "pending",
       progress: 5,
       message: "Import queued",
-      updated_at: new Date().toISOString(),
+      error_file_path: null,
     });
 
     const folder = `imports/${competitionId}`;
     await this.storage.uploadPublicObject(UPLOAD_BUCKET, folder, file);
 
-    importProgressStore.set(competitionId, {
-      competition_id: competitionId,
+    await this.importJobs.upsert(competitionId, {
       status: "processing",
-      progress: 45,
-      message: "Import is processing",
-      updated_at: new Date().toISOString(),
+      progress: 10,
+      message: "Parsing file",
     });
 
-    // Simulate asynchronous completion until a real background worker is added.
-    setTimeout(() => {
-      importProgressStore.set(competitionId, {
-        competition_id: competitionId,
+    try {
+      const rows = await parseUploadFile(file);
+      if (rows.length === 0) {
+        throw new ServiceError("File contains no data rows", 400);
+      }
+
+      const teamIds =
+        await this.competitionTeams.listTeamIdsInCompetition(competitionId);
+      const competitionPlayers = await this.players.listByTeamIds(teamIds);
+      const allowedIds = new Set(
+        competitionPlayers.map((p) => String((p as { id: string }).id))
+      );
+
+      const errors: { row: number; message: string }[] = [];
+      let processed = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const playerId = (row.id ?? row.player_id ?? "").trim();
+        if (!playerId) {
+          errors.push({ row: i + 2, message: "Missing player id" });
+          continue;
+        }
+        if (!allowedIds.has(playerId)) {
+          errors.push({
+            row: i + 2,
+            message: "Player not in this competition",
+          });
+          continue;
+        }
+
+        const statPatch = statPatchFromRow(row);
+        if (Object.keys(statPatch).length === 0) {
+          errors.push({ row: i + 2, message: "No stat columns filled" });
+          continue;
+        }
+
+        await this.players.upsertCompetitionPlayerStats(
+          playerId,
+          competitionId,
+          statPatch
+        );
+        processed++;
+        const progress = Math.min(
+          95,
+          10 + Math.round((processed / rows.length) * 85)
+        );
+        await this.importJobs.upsert(competitionId, {
+          status: "processing",
+          progress,
+          message: `Imported ${processed} of ${rows.length} rows`,
+        });
+      }
+
+      if (errors.length > 0 && processed === 0) {
+        const errorCsv = toCsv(
+          errors.map((e) => ({
+            row: e.row,
+            message: e.message,
+          })),
+          ["row", "message"]
+        );
+        const errorPath = `${folder}/errors-${Date.now()}.csv`;
+        const errorBlob = new Blob([errorCsv], { type: "text/csv" });
+        const errorFile = new File([errorBlob], "import-errors.csv", {
+          type: "text/csv",
+        });
+        await this.storage.uploadPublicObject(
+          UPLOAD_BUCKET,
+          errorPath,
+          errorFile
+        );
+        await this.importJobs.upsert(competitionId, {
+          status: "failed",
+          progress: 100,
+          message: "Import failed",
+          error_file_path: errorPath,
+        });
+        return {
+          message: "Import failed",
+          status: "failed",
+          progress: 100,
+          link: errorPath,
+        };
+      }
+
+      if (errors.length > 0) {
+        const errorCsv = toCsv(
+          errors.map((e) => ({ row: e.row, message: e.message })),
+          ["row", "message"]
+        );
+        const errorPath = `${folder}/errors-${Date.now()}.csv`;
+        const errorBlob = new Blob([errorCsv], { type: "text/csv" });
+        const errorFile = new File([errorBlob], "import-errors.csv", {
+          type: "text/csv",
+        });
+        await this.storage.uploadPublicObject(
+          UPLOAD_BUCKET,
+          errorPath,
+          errorFile
+        );
+        await this.importJobs.upsert(competitionId, {
+          status: "failed",
+          progress: 100,
+          message: `Completed with ${errors.length} row errors`,
+          error_file_path: errorPath,
+        });
+        return {
+          message: "Import completed with errors",
+          status: "failed",
+          progress: 100,
+          link: errorPath,
+        };
+      }
+
+      await this.importJobs.upsert(competitionId, {
         status: "success",
         progress: 100,
         message: "Import completed",
-        updated_at: new Date().toISOString(),
+        error_file_path: null,
       });
-    }, 800);
 
-    return {
-      message: "Import received",
-      status: "pending",
-      progress: 5,
-    };
+      return {
+        message: "Import completed",
+        status: "success",
+        progress: 100,
+      };
+    } catch (e) {
+      const message =
+        e instanceof ServiceError ? e.message : "Import failed unexpectedly";
+      await this.importJobs.upsert(competitionId, {
+        status: "failed",
+        progress: 100,
+        message,
+        error_file_path: null,
+      });
+      throw e instanceof ServiceError ? e : new ServiceError(message, 500);
+    }
   }
 
   async getImportProgress(competitionId: string) {
-    return (
-      importProgressStore.get(competitionId) ?? {
+    const job = await this.importJobs.get(competitionId);
+    if (!job) {
+      return {
         competition_id: competitionId,
-        status: "pending",
+        status: "pending" as const,
         progress: 0,
         message: "No import started",
+        link: null as string | null,
         updated_at: new Date().toISOString(),
-      }
-    );
+      };
+    }
+    return {
+      competition_id: job.competition_id,
+      status: job.status,
+      progress: job.progress,
+      message: job.message ?? undefined,
+      link: job.error_file_path,
+      updated_at: job.updated_at,
+    };
   }
 
   async exportPlayersCsv(competitionId: string): Promise<string> {
     const teamIds =
       await this.competitionTeams.listTeamIdsInCompetition(competitionId);
     const players = await this.players.listByTeamIds(teamIds);
-    return toCsv(players as Record<string, unknown>[]);
+    return toCsv(
+      players as Record<string, unknown>[],
+      PLAYER_STATS_EXPORT_COLUMNS
+    );
   }
 
 }

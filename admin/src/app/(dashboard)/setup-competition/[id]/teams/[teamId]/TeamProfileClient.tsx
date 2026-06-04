@@ -28,7 +28,8 @@ import CreateTeams from "@/components/teams/CreateTeams";
 import { getImageUrl } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Team } from "@/types/teams";
-import { getTeam, updateTeam } from "@/actions/teams";
+import { fetchTeamDetails, fetchTeamPlayers, updateTeam } from "@/actions/teams";
+import { ensureArray } from "@/lib/normalize";
 import { Player } from "@/types/players";
 import { queryClient } from "@/providers/query-provider";
 import { toBase64 } from "@/lib/to-base-64";
@@ -55,8 +56,25 @@ export default function TeamProfileClient({
   const coverPhotoInputRef = useRef<HTMLInputElement>(null);
   const { data: teamDetails } = useQuery<Team>({
     queryKey: ["team", teamId],
-    queryFn: () => getTeam(teamId) as Promise<Team>,
+    queryFn: async () => {
+      const result = await fetchTeamDetails(teamId);
+      if ("error" in result) {
+        throw new Error(result.error);
+      }
+      let players = ensureArray<NonNullable<Team["players"]>[number]>(
+        result.players
+      );
+      if (players.length === 0) {
+        const fallback = await fetchTeamPlayers(teamId);
+        if (Array.isArray(fallback) && fallback.length > 0) {
+          players = fallback as NonNullable<Team["players"]>;
+        }
+      }
+      return { ...result, players };
+    },
     initialData: team,
+    staleTime: 30_000,
+    refetchOnMount: false,
   });
 
   const filteredPlayers = teamDetails?.players

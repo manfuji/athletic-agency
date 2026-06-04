@@ -27,6 +27,7 @@ import { StageSupabaseRepository } from "@/server/repositories/stageRepository";
 import { StructureSupabaseRepository } from "@/server/repositories/structureRepository";
 import { StorageSupabaseRepository } from "@/server/repositories/storageRepository";
 import { TeamSupabaseRepository } from "@/server/repositories/teamRepository";
+import { CompetitionImportSupabaseRepository } from "@/server/repositories/competitionImportRepository";
 import { CategoryService } from "@/server/services/categoryService";
 import { CollatorService } from "@/server/services/collatorService";
 import { CompetitionService } from "@/server/services/competitionService";
@@ -84,6 +85,7 @@ export function getAdminServices() {
   const videoVerificationRepo = new VideoVerificationSupabaseRepository(db);
   const opsTableRepo = new OpsTableSupabaseRepository(db);
   const apiKeyRepo = new ApiKeySupabaseRepository(db);
+  const competitionImportRepo = new CompetitionImportSupabaseRepository(db);
 
   const teamService = new TeamService(teamRepo, storageRepo);
   const playerService = new PlayerService(playerRepo, storageRepo);
@@ -111,7 +113,8 @@ export function getAdminServices() {
       teamService,
       storageRepo,
       structureRepo,
-      playerRepo
+      playerRepo,
+      competitionImportRepo
     ),
     categoryService: new CategoryService(categoryRepo),
     stageService: new StageService(stageRepo),

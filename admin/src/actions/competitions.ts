@@ -265,10 +265,12 @@ export async function importCompetitionStats(competitionId: string, file: File) 
       // for multipart/form-data
     })
     .then((res) => {
-      console.log("Import API response:", res.data);
-      // Handle both direct response and wrapped response
-      const responseData = res.data?.data || res.data;
-      return responseData;
+      return unwrapApi<{
+        message?: string;
+        status?: string;
+        progress?: number;
+        link?: string | null;
+      }>(res.data);
     })
     .catch((error) => {
       console.error("Error importing competition stats:", error);
@@ -312,10 +314,14 @@ export async function getCompetitionImportProgress(competitionId: string) {
   return await apiClient
     .get(`/api/admin/competitions/${competitionId}/import-progress`)
     .then((res) => {
-      console.log("Progress API response:", res.data);
-      // Handle both direct response and wrapped response
-      const responseData = res.data?.data || res.data;
-      return responseData;
+      return unwrapApi<{
+        competition_id: string;
+        status: string;
+        progress: number;
+        message?: string;
+        link?: string | null;
+        updated_at: string;
+      }>(res.data);
     })
     .catch((error) => {
       console.error("Error fetching import progress:", error);

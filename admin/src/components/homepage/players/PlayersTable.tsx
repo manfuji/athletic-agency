@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -59,11 +59,16 @@ export default function PlayersTable({ initialResponse }: PlayersTableProps) {
   const router = useRouter();
   const positions = ["All", "Goalkeeper", "Defender", "Midfielder", "Forward"];
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedPosition]);
+
   const displayPlayers = ensureArray<Player>(playersData?.data).filter(
     (player: Player) =>
       player.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (selectedPosition === "All" ||
-        player.position.toLowerCase() === selectedPosition.toLowerCase())
+        (player.position ?? "").toLowerCase() ===
+          selectedPosition.toLowerCase())
   );
 
   const goToPage = (page: number) => {
@@ -102,8 +107,9 @@ export default function PlayersTable({ initialResponse }: PlayersTableProps) {
   };
 
   const handleImportComplete = () => {
-    console.log("Import completed successfully!")
-  }
+    queryClient.invalidateQueries({ queryKey: ["players"] });
+    toast.success("Import completed successfully!");
+  };
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4 gap-2">

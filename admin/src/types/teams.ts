@@ -5,6 +5,7 @@ export interface Team {
   coverPhoto: string | null;
   name: string;
   shortCode: string;
+  short_code?: string;
   description: string | null;
   slug: string;
   isDeleted: number;

@@ -26,6 +26,8 @@ import { queryClient } from "@/providers/query-provider";
 import { createCategory } from "@/actions/competitions";
 import AddCompetitionTypeModal from "../competition-types/add-competition-type-modal";
 import { fetchCompetitionTypes } from "@/actions/competiton-types";
+import { fetchAllCollators, assignCollators } from "@/actions/collators";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Category {
   id: string;
@@ -92,6 +94,7 @@ export default function CreateCompetitionModal({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddCompetitionTypeModalOpen, setIsAddCompetitionTypeModalOpen] =
     useState(false);
+  const [selectedCollatorIds, setSelectedCollatorIds] = useState<string[]>([]);
 
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +109,12 @@ export default function CreateCompetitionModal({
   const { data: competitionTypes } = useQuery<CompetitionType[], Error>({
     queryKey: ["competition-types"],
     queryFn: () => fetchCompetitionTypes(),
+  });
+
+  const { data: collators = [] } = useQuery({
+    queryKey: ["collators"],
+    queryFn: () => fetchAllCollators("1"),
+    enabled: isOpen && !editingCompetition,
   });
 
   useEffect(() => {
@@ -381,10 +390,21 @@ export default function CreateCompetitionModal({
           toast.error(String((res as { error: unknown }).error));
           return;
         }
+        const competitionId = (res as { id: string }).id;
+        if (selectedCollatorIds.length > 0) {
+          const assignRes = await assignCollators(
+            competitionId,
+            selectedCollatorIds
+          );
+          if (assignRes && typeof assignRes === "object" && "error" in assignRes) {
+            toast.error(String(assignRes.error));
+          }
+        }
         toast.success("Competition Created Successfully");
 
         queryClient.invalidateQueries({ queryKey: ["competitions"] });
-        router.push(`/setup-competition/${(res as { id: string }).id}`);
+        setSelectedCollatorIds([]);
+        router.push(`/setup-competition/${competitionId}`);
       }
       onClose();
     } catch (error: unknown) {
@@ -632,6 +652,51 @@ export default function CreateCompetitionModal({
                 </p>
               )}
             </div>
+
+            {!editingCompetition && (
+              <div className="sm:col-span-2">
+                <Label className="font-inter font-medium text-[14px] text-[#344054]">
+                  Assign collators (optional)
+                </Label>
+                <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3 space-y-2">
+                  {collators.length === 0 ? (
+                    <p className="text-sm text-[#475467] font-inter">
+                      No collators available. Add collators from the Collators
+                      page first.
+                    </p>
+                  ) : (
+                    collators.map(
+                      (c: {
+                        id: string;
+                        first_name: string;
+                        last_name: string;
+                        email: string;
+                      }) => (
+                        <label
+                          key={c.id}
+                          className="flex items-center gap-2 cursor-pointer font-inter text-sm"
+                        >
+                          <Checkbox
+                            checked={selectedCollatorIds.includes(c.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedCollatorIds((prev) =>
+                                checked
+                                  ? [...prev, c.id]
+                                  : prev.filter((id) => id !== c.id)
+                              );
+                            }}
+                            disabled={isLoading}
+                          />
+                          <span>
+                            {c.first_name} {c.last_name} ({c.email})
+                          </span>
+                        </label>
+                      )
+                    )
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="sm:col-span-2">
               <div

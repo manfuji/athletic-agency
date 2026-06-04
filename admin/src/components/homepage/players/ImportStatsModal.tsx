@@ -14,6 +14,7 @@ import {
   getCompetitions,
 } from "@/actions/competitions"
 import { useQuery } from "@tanstack/react-query"
+import { queryClient } from "@/providers/query-provider"
 
 interface ImportPlayerStatsModalProps {
   isOpen: boolean
@@ -221,13 +222,68 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
         throw new Error(importResult.error || "Import failed")
       }
 
-      // Validate that import was started successfully
-      if (!importResult || (importResult.status !== "pending" && !importResult.status)) {
-        console.error("Unexpected import response:", importResult)
+      if (!importResult) {
         throw new Error("Failed to start import. Please try again.")
       }
 
-      // Poll for progress
+      const finishSuccess = () => {
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current)
+          progressIntervalRef.current = null
+        }
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+          timeoutRef.current = null
+        }
+        if (stuckCheckRef.current) {
+          clearTimeout(stuckCheckRef.current)
+          stuckCheckRef.current = null
+        }
+        setProgress(100)
+        setImportState("success")
+        toast.success("Player stats imported successfully!")
+        queryClient.invalidateQueries({ queryKey: ["players"] })
+        setTimeout(() => onImportComplete(), 1000)
+      }
+
+      const finishFailed = (errorLink: string, message?: string) => {
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current)
+          progressIntervalRef.current = null
+        }
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+          timeoutRef.current = null
+        }
+        if (stuckCheckRef.current) {
+          clearTimeout(stuckCheckRef.current)
+          stuckCheckRef.current = null
+        }
+        setProgress(100)
+        setErrorDownloadLink(errorLink)
+        setImportError({
+          failedRows: 0,
+          totalRows: 0,
+          errorMessage:
+            message ??
+            (errorLink
+              ? "Import failed. Download the error file to see which rows need fixing and re-upload."
+              : "Import failed. Please check the file format and try again."),
+        })
+        setImportState("error")
+        toast.error("Import failed. Check the error file for details.")
+      }
+
+      if (importResult.status === "success") {
+        finishSuccess()
+        return
+      }
+      if (importResult.status === "failed") {
+        finishFailed(importResult.link ?? "")
+        return
+      }
+
+      // Poll for progress (import may still be running on server)
       const pollProgress = async () => {
         try {
           const progressResult = await getCompetitionImportProgress(
@@ -257,7 +313,10 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
           } else {
             // If progress hasn't changed for more than 15 seconds, show warning
             const timeSinceLastChange = now - lastProgressRef.current.timestamp
-            if (timeSinceLastChange > 15000 && status === "pending") {
+            if (
+              timeSinceLastChange > 15000 &&
+              (status === "pending" || status === "processing")
+            ) {
               const secondsStuck = Math.round(timeSinceLastChange / 1000)
               console.warn(`Import appears stuck: no progress change for ${secondsStuck}s`)
               
@@ -276,55 +335,19 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
           setProgress(currentProgress)
 
           if (status === "success") {
-            if (progressIntervalRef.current) {
-              clearInterval(progressIntervalRef.current)
-              progressIntervalRef.current = null
-            }
-            if (timeoutRef.current) {
-              clearTimeout(timeoutRef.current)
-              timeoutRef.current = null
-            }
-            if (stuckCheckRef.current) {
-              clearTimeout(stuckCheckRef.current)
-              stuckCheckRef.current = null
-            }
-            setProgress(100)
-            setImportState("success")
-            toast.success("Player stats imported successfully!")
-            setTimeout(() => {
-              onImportComplete()
-            }, 1000)
+            finishSuccess()
             return false
           } else if (status === "failed") {
-            if (progressIntervalRef.current) {
-              clearInterval(progressIntervalRef.current)
-              progressIntervalRef.current = null
-            }
-            if (timeoutRef.current) {
-              clearTimeout(timeoutRef.current)
-              timeoutRef.current = null
-            }
-            if (stuckCheckRef.current) {
-              clearTimeout(stuckCheckRef.current)
-              stuckCheckRef.current = null
-            }
-        setProgress(100)
-            const errorLink = progressResult.link || ""
-            console.log("Import failed. Error link:", errorLink)
-            setErrorDownloadLink(errorLink)
-            const errorMessage = errorLink
-              ? "Import failed. Download the error file to see which rows need fixing and re-upload."
-              : "Import failed. Please check the file format and try again."
-        setImportError({
-              failedRows: 0,
-              totalRows: 0,
-              errorMessage,
-        })
-        setImportState("error")
-            toast.error("Import failed. Check the error file for details.")
+            finishFailed(
+              progressResult.link || "",
+              progressResult.message
+            )
             return false
-          } else if (status === "pending" || currentProgress < 100) {
-            // Continue polling
+          } else if (
+            status === "pending" ||
+            status === "processing" ||
+            currentProgress < 100
+          ) {
             return true
           }
 
@@ -349,14 +372,23 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
           getCompetitionImportProgress(formState.selectedCompetition)
             .then((finalCheck) => {
               console.log("Final progress check:", finalCheck)
-              if (finalCheck && finalCheck.status === "success") {
+              if (
+                finalCheck &&
+                !("error" in finalCheck) &&
+                finalCheck.status === "success"
+              ) {
         setProgress(100)
         setImportState("success")
                 toast.success("Player stats imported successfully!")
+                queryClient.invalidateQueries({ queryKey: ["players"] })
         setTimeout(() => {
           onImportComplete()
         }, 1000)
-              } else if (finalCheck && finalCheck.status === "failed") {
+              } else if (
+                finalCheck &&
+                !("error" in finalCheck) &&
+                finalCheck.status === "failed"
+              ) {
                 const errorLink = finalCheck.link || ""
                 setErrorDownloadLink(errorLink)
                 setImportError({
@@ -524,8 +556,10 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
     <>
       <div className="space-y-4">
         <p className="text-sm text-gray-600">
-          To import stats, first export the player list for the selected competition. Then, add the stats to the
-          downloaded CSV file and upload it here.
+          Export the player list for the selected competition, fill in the stat
+          columns (total_shots, tackles, minutes_played, etc.), then upload the
+          CSV or Excel file here. Player id must match a player in that
+          competition.
         </p>
 
         <div className="space-y-2">

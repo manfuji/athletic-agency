@@ -26,6 +26,11 @@ export interface IPlayerRepository {
   deletePlayer(playerId: string): Promise<void>;
   setTeamId(playerId: string, teamId: string | null): Promise<void>;
   listByTeamIds(teamIds: string[]): Promise<unknown[]>;
+  upsertCompetitionPlayerStats(
+    playerId: string,
+    competitionId: string,
+    stats: Record<string, number | null>
+  ): Promise<void>;
 }
 
 export class PlayerSupabaseRepository implements IPlayerRepository {
@@ -66,7 +71,9 @@ export class PlayerSupabaseRepository implements IPlayerRepository {
 
     const { data, error, count } = await this.db
       .from("players")
-      .select("id,name,profile_picture,team_id", { count: "exact" })
+      .select("id,name,profile_picture,team_id,position,created_at", {
+        count: "exact",
+      })
       .range(from, to)
       .order("created_at", { ascending: false });
 
@@ -165,5 +172,44 @@ export class PlayerSupabaseRepository implements IPlayerRepository {
 
     if (error) throw new ServiceError(error.message, 500);
     return data ?? [];
+  }
+
+  async upsertCompetitionPlayerStats(
+    playerId: string,
+    competitionId: string,
+    stats: Record<string, number | null>
+  ): Promise<void> {
+    const { data: existing, error: e0 } = await this.db
+      .from("player_statistics")
+      .select("id")
+      .eq("player_id", playerId)
+      .eq("competition_id", competitionId)
+      .is("fixture_id", null)
+      .maybeSingle();
+
+    if (e0) throw new ServiceError(e0.message, 500);
+
+    const patch = {
+      ...stats,
+      player_id: playerId,
+      competition_id: competitionId,
+      fixture_id: null,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      const { error } = await this.db
+        .from("player_statistics")
+        .update(patch)
+        .eq("id", (existing as { id: string }).id);
+      if (error) throw new ServiceError(error.message, 500);
+      return;
+    }
+
+    const { error } = await this.db.from("player_statistics").insert({
+      ...patch,
+      created_at: new Date().toISOString(),
+    });
+    if (error) throw new ServiceError(error.message, 500);
   }
 }

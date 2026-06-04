@@ -3,7 +3,7 @@
 import apiClient from "@/lib/axios";
 import { AxiosError } from "axios";
 import { PlayerDetails } from "@/types/players";
-import { getTeam } from "@/actions/teams";
+import { fetchTeamDetails } from "@/actions/teams";
 import { unwrapApi } from "@/lib/unwrapApi";
 import { ensureArray, ensureNumber } from "@/lib/normalize";
 import type { PlayersResponse, Player } from "@/types/players";
@@ -112,11 +112,10 @@ export async function fetchPlayer(playerId: string, competitionId?: string) {
     let teamName: string | null = null;
     if (playerData.team_id) {
       try {
-        // Handle possible shapes: { data: { name } } or { name }
-        const teamResponse: { data?: { name?: string }; name?: string } =
-          await getTeam(playerData.team_id);
-
-        teamName = teamResponse.data?.name ?? teamResponse.name ?? null;
+        const teamResponse = await fetchTeamDetails(playerData.team_id);
+        if (!("error" in teamResponse)) {
+          teamName = teamResponse.name ?? null;
+        }
       } catch {
         // Silently fail - team name will remain null
       }

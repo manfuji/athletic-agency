@@ -17,13 +17,25 @@ const emptyTeamResponse: TeamResponse = {
   per_page: 10,
 };
 
+function normalizeTeamRow(team: Team & Record<string, unknown>): Team {
+  return {
+    ...team,
+    shortCode:
+      team.shortCode ??
+      (typeof team.short_code === "string" ? team.short_code : ""),
+  };
+}
+
 export async function fetchTeams(competitionId: string, page: number = 1) {
   return await apiClient
     .get(`/api/admin/competitions/${competitionId}/teams?page=${page}`)
     .then((res) => {
       const pageData = unwrapApi<TeamResponse>(res.data);
+      const raw = Array.isArray(pageData?.data) ? pageData.data : [];
       return {
-        data: Array.isArray(pageData?.data) ? pageData.data : [],
+        data: raw.map((t) =>
+          normalizeTeamRow(t as Team & Record<string, unknown>)
+        ),
         last_page:
           typeof pageData?.last_page === "number" ? pageData.last_page : 1,
         per_page:
@@ -215,7 +227,7 @@ export async function getTeam(teamId: string) {
   return await apiClient
     .get(`/api/admin/teams/${teamId}`)
     .then((res) => {
-      return res.data;
+      return unwrapApi<Team>(res.data);
     })
     .catch((error) => {
       console.error("Error fetching team details:", error);
@@ -247,7 +259,8 @@ export async function fetchTeamPlayers(teamId: string) {
   return await apiClient
     .get(`/api/admin/teams/${teamId}/players`)
     .then((res) => {
-      return res.data;
+      const data = unwrapApi<unknown>(res.data);
+      return Array.isArray(data) ? data : [];
     })
     .catch((error) => {
       console.error("Error fetching team players:", error);

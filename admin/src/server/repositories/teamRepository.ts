@@ -1,17 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceError } from "@/server/errors/serviceError";
 
+function playersCountFromRow(row: Record<string, unknown>): number {
+  const players = row.players;
+  if (Array.isArray(players) && players.length > 0) {
+    const first = players[0] as { count?: number };
+    if (typeof first?.count === "number") return first.count;
+  }
+  return 0;
+}
+
 function toTeamSummaryRow(
   row: Record<string, unknown>,
-  overrides?: Partial<Pick<TeamSummaryRow, "logo" | "slug">>
+  overrides?: Partial<Pick<TeamSummaryRow, "logo" | "slug" | "players_count">>
 ): TeamSummaryRow {
   return {
     id: String(row.id ?? ""),
     name: String(row.name ?? ""),
-    shortCode: String(row.shortCode ?? ""),
+    shortCode: String(row.shortCode ?? row.short_code ?? ""),
     logo: typeof row.logo === "string" ? row.logo : null,
     created_at: String(row.created_at ?? ""),
     slug: String(row.slug ?? ""),
+    players_count: playersCountFromRow(row),
     ...(overrides ?? {}),
   };
 }
@@ -36,6 +46,7 @@ export type TeamSummaryRow = {
   logo: string | null;
   created_at: string;
   slug: string;
+  players_count: number;
 };
 
 export type TeamInsert = {
@@ -67,7 +78,9 @@ export class TeamSupabaseRepository implements ITeamRepository {
   async listSummary(): Promise<TeamSummaryRow[]> {
     const { data, error } = await this.db
       .from("teams")
-      .select("id,name,shortCode:short_code,logo,created_at,slug")
+      .select(
+        "id,name,shortCode:short_code,logo,created_at,slug,players(count)"
+      )
       .order("created_at", { ascending: false });
 
     if (error) throw new ServiceError(error.message, 500);
@@ -78,7 +91,7 @@ export class TeamSupabaseRepository implements ITeamRepository {
     teamId: string
   ): Promise<Record<string, unknown> | null> {
     const selectClause =
-      "id,category_id,logo,coverPhoto:cover_photo,name,shortCode:short_code,description,slug,isDeleted:is_deleted,created_at,updated_at,players:players(id,team_id,profile_picture,name,position,created_at,nationality,dob,weight,height,bio,preferred_foot,previous_experience,reason_for_joining)";
+      "id,category_id,logo,coverPhoto:cover_photo,name,shortCode:short_code,description,slug,isDeleted:is_deleted,created_at,updated_at,category:categories(id,name),players:players(id,team_id,profile_picture,name,position,created_at,nationality,dob,weight,height,bio,preferred_foot,previous_experience,reason_for_joining)";
 
     const { data, error } = await this.db
       .from("teams")
