@@ -5,13 +5,16 @@ import { unwrapApi } from "@/lib/unwrapApi";
 import { AxiosError } from "axios";
 import type { CompetitionFromAPI } from "@/types/competitions";
 import type { Category } from "@/types/categories";
+import { normalizeCompetition } from "@/lib/normalize";
 
 export async function getCompetitions() {
   return await apiClient
     .get("/api/admin/competitions")
     .then((res) => {
       const competitions = unwrapApi<CompetitionFromAPI[]>(res?.data);
-      return Array.isArray(competitions) ? competitions : [];
+      return Array.isArray(competitions)
+        ? competitions.map((c) => normalizeCompetition(c))
+        : [];
     })
     .catch((error) => {
       const status = error instanceof AxiosError ? error.response?.status : null;
@@ -26,7 +29,8 @@ export async function getCompetitionById(id: string) {
   return await apiClient
     .get(`/api/admin/competitions/${id}`)
     .then((res) => {
-      return res.data?.data;
+      const row = unwrapApi<CompetitionFromAPI>(res.data);
+      return normalizeCompetition(row);
     })
     .catch((error) => {
       console.error("Error fetching competition by id:", error);

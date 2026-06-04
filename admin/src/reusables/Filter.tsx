@@ -11,18 +11,26 @@ import {
 interface FilterProps {
   options: string[];
   placeholder?: string;
+  value?: string;
+  defaultValue?: string;
   onValueChange?: (value: string) => void;
 }
 
 export default function Filter({
   options,
   placeholder = 'Filter',
+  value,
+  defaultValue = 'All',
   onValueChange,
 }: FilterProps) {
   const handleValueChange = onValueChange || (() => {});
 
   return (
-    <Select onValueChange={handleValueChange}>
+    <Select
+      value={value}
+      defaultValue={value === undefined ? defaultValue : undefined}
+      onValueChange={handleValueChange}
+    >
       <SelectTrigger className="w-48">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

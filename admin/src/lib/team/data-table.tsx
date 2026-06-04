@@ -31,10 +31,22 @@ import CreateTeams from '@/components/teams/CreateTeams';
 import ExistingTeams from '@/components/teams/ExistingTeam';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { fetchTeams, fetchTeamDetails } from '@/actions/teams';
+import { fetchTeams } from '@/actions/teams';
 import { getImageUrl } from '@/lib/api';
-import { ensureArray, teamDetailsPlayerCount } from '@/lib/normalize';
+import { teamPlayersCountFromRow } from '@/lib/normalize';
 import { Team } from '@/types/teams';
+
+function mapTeamToRow(team: Team): TeamType {
+  return {
+    id: team.id,
+    name: team.name,
+    code: team.shortCode,
+    icon: getImageUrl(team.logo ?? null) || '/TeamLogo.png',
+    players: team.players_count ?? teamPlayersCountFromRow(team),
+    joined: new Date(team.created_at),
+    slug: team.slug,
+  };
+}
 export interface TeamType {
   id: string;
   name: string;
@@ -83,20 +95,7 @@ export function DataTable<TData extends TeamType, TValue>({
     const fetchPage = async () => {
       try {
         const response = await fetchTeams(competitionId, pageIndex + 1);
-        const newTeams: TeamType[] = await Promise.all(
-          response.data.map(async (team: Team) => {
-            const teamDetails = await fetchTeamDetails(team.id);
-            return {
-              id: team.id,
-              name: team.name,
-              code: team.shortCode,
-              icon: getImageUrl(team.logo ?? null) || '/TeamLogo.png',
-              players: teamDetailsPlayerCount(teamDetails),
-              joined: new Date(team.created_at),
-              slug: team.slug,
-            };
-          })
-        );
+        const newTeams = response.data.map((team: Team) => mapTeamToRow(team));
         setTeams(newTeams as TData[]);
         setPageCount(response.last_page);
       } catch (error) {
@@ -110,20 +109,7 @@ export function DataTable<TData extends TeamType, TValue>({
   const refreshTeams = async () => {
     try {
       const response = await fetchTeams(competitionId, 1);
-      const updatedTeams: TeamType[] = await Promise.all(
-        response.data.map(async (team: Team) => {
-          const teamDetails = await fetchTeamDetails(team.id);
-          return {
-            id: team.id,
-            name: team.name,
-            code: team.shortCode,
-            icon: getImageUrl(team.logo ?? null) || '/TeamLogo.svg',
-            players: teamDetailsPlayerCount(teamDetails),
-            joined: new Date(team.created_at),
-            slug: team.slug,
-          };
-        })
-      );
+      const updatedTeams = response.data.map((team: Team) => mapTeamToRow(team));
       setTeams(updatedTeams as TData[]);
       setPageIndex(0);
       setPageCount(response.last_page);

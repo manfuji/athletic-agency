@@ -10,15 +10,13 @@ import { useSession } from '@/providers/supabase-auth';
 
 interface CompetitionHeaderProps {
   setSearchQuery: (query: string) => void;
-    // onCompetitionCreated?: (newComp: CompetitionForForm) => void;
-    // onCompetitionUpdated?: (updatedComp: CompetitionForForm) => void;
+  filterStatus: string;
   setFilterStatus: (status: string) => void;
 }
 
 const CompetitionHeader = ({
   setSearchQuery,
-  // onCompetitionCreated,
-  // onCompetitionUpdated,
+  filterStatus,
   setFilterStatus,
 }: CompetitionHeaderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +42,7 @@ const CompetitionHeader = ({
           <Filter
             options={['All', 'Draft', 'Published', 'Started', 'Ended']}
             placeholder="Filter by status"
+            value={filterStatus}
             onValueChange={setFilterStatus}
           />
         </div>

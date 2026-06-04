@@ -121,6 +121,7 @@ export default function PlayersTable({ initialResponse }: PlayersTableProps) {
           <Filter
             options={positions}
             placeholder="Filter by position"
+            value={selectedPosition}
             onValueChange={(value) => setSelectedPosition(value)}
           />
         </div>

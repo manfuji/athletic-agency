@@ -92,8 +92,7 @@ export default function Competitions({
     <div>
       <CompetitionHeader
         setSearchQuery={handleSearch}
-        // onCompetitionCreated={handleCompetitionCreated}
-        // onCompetitionUpdated={handleCompetitionUpdated}
+        filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
       />
       <div className="mt-6">

@@ -5,6 +5,7 @@ export type CompetitionRow = Record<string, unknown>;
 
 export interface ICompetitionRepository {
   listAll(): Promise<unknown[]>;
+  listForCollatorUser(userId: string): Promise<unknown[]>;
   findById(competitionId: string): Promise<Record<string, unknown> | null>;
   insert(row: CompetitionRow): Promise<Record<string, unknown>>;
   update(
@@ -29,6 +30,38 @@ export class CompetitionSupabaseRepository implements ICompetitionRepository {
     const { data, error } = await this.db
       .from("competitions")
       .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw new ServiceError(error.message, 500);
+    return data ?? [];
+  }
+
+  async listForCollatorUser(userId: string): Promise<unknown[]> {
+    const { data: collator, error: cErr } = await this.db
+      .from("collators")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (cErr) throw new ServiceError(cErr.message, 500);
+    if (!collator) return [];
+
+    const collatorId = (collator as { id: string }).id;
+    const { data: links, error: lErr } = await this.db
+      .from("competition_collators")
+      .select("competition_id")
+      .eq("collator_id", collatorId);
+
+    if (lErr) throw new ServiceError(lErr.message, 500);
+    const competitionIds = (links ?? []).map(
+      (r: { competition_id: string }) => r.competition_id
+    );
+    if (competitionIds.length === 0) return [];
+
+    const { data, error } = await this.db
+      .from("competitions")
+      .select("*")
+      .in("id", competitionIds)
       .order("created_at", { ascending: false });
 
     if (error) throw new ServiceError(error.message, 500);
@@ -139,7 +172,7 @@ export class CompetitionTeamSupabaseRepository
 
     const { data, error, count } = await this.db
       .from("competition_teams")
-      .select("team:teams(*)", { count: "exact" })
+      .select("team:teams(*, players(count))", { count: "exact" })
       .eq("competition_id", competitionId)
       .range(from, to);
 

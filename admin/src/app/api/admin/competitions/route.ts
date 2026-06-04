@@ -15,5 +15,11 @@ import { runAdminApi } from "@/server/http/routeHelpers";
  *         description: Successful response
  */
 export async function GET() {
-  return runAdminApi(async () => getAdminServices().competitionService.list());
+  return runAdminApi(async (session) => {
+    const service = getAdminServices().competitionService;
+    if (session.user.role === "collator") {
+      return service.listForCollatorUser(session.user.id);
+    }
+    return service.list();
+  });
 }

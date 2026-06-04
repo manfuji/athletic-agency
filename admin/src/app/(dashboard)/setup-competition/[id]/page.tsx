@@ -28,6 +28,10 @@ export default async function CompetitionSetupPage({
       getFixtures(id),
     ]);
 
+    if ("error" in comp) {
+      throw new Error(comp.error);
+    }
+
     const mappedCompetition: CompetitionForForm = {
       id: comp.id,
       title: comp.title,
@@ -38,7 +42,7 @@ export default async function CompetitionSetupPage({
       image: getImageUrl(comp.banner) || "",
       structureId: comp.structure_id,
       location: comp.location,
-      competitionType: comp.competition_type_id,
+      competitionType: comp.competition_type_id ?? "",
     };
 
     const teamDetailsPromises = allTeams.map((team) =>

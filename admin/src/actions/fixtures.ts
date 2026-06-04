@@ -2,6 +2,7 @@
 
 import apiClient from "@/lib/axios";
 import { unwrapApi } from "@/lib/unwrapApi";
+import { normalizeTeamRow } from "@/lib/normalize";
 import { FixtureFormData, Fixture, Team } from "@/types/fixtures";
 
 interface FixtureData {
@@ -107,7 +108,12 @@ export async function getFixtures(competitionId: string) {
       const resultsData = unwrapApi<ResultsResponse>(resultsRes.data);
 
       const teamMap = new Map<string, Team>(
-        (teamsPage?.data ?? []).map((team: Team) => [team.id, team])
+        (teamsPage?.data ?? []).map((team: Team) => {
+          const normalized = normalizeTeamRow(
+            team as unknown as Record<string, unknown>
+          ) as unknown as Team;
+          return [normalized.id, normalized];
+        })
       );
 
       const resultMap = new Map<string, ResultData>(
@@ -179,7 +185,12 @@ export async function fetchFixtureDetails(
         const resultsData = unwrapApi<ResultsResponse>(resultsRes.data);
 
         const teamMap = new Map<string, Team>(
-          (teamsPage?.data ?? []).map((team: Team) => [team.id, team])
+          (teamsPage?.data ?? []).map((team: Team) => {
+            const normalized = normalizeTeamRow(
+              team as unknown as Record<string, unknown>
+            ) as unknown as Team;
+            return [normalized.id, normalized];
+          })
         );
 
         const resultMap = new Map<string, ResultData>(

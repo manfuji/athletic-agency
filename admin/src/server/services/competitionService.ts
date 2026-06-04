@@ -57,6 +57,10 @@ export class CompetitionService {
     return this.competitions.listAll();
   }
 
+  listForCollatorUser(userId: string) {
+    return this.competitions.listForCollatorUser(userId);
+  }
+
   async getById(competitionId: string) {
     const row = await this.competitions.findById(competitionId);
     if (!row) throw new ServiceError("Competition not found", 404);
@@ -226,6 +230,27 @@ export class CompetitionService {
     return this.structures.insert(input);
   }
 
+  private async uploadImportErrorCsv(
+    folder: string,
+    errors: { row: number; message: string }[]
+  ): Promise<string> {
+    const errorCsv = toCsv(
+      errors.map((e) => ({ row: e.row, message: e.message })),
+      ["row", "message"]
+    );
+    const errorPath = `${folder}/errors-${Date.now()}.csv`;
+    const errorBlob = new Blob([errorCsv], { type: "text/csv" });
+    const errorFile = new File([errorBlob], "import-errors.csv", {
+      type: "text/csv",
+    });
+    const uploaded = await this.storage.uploadPublicObject(
+      UPLOAD_BUCKET,
+      errorPath,
+      errorFile
+    );
+    return uploaded.publicUrl;
+  }
+
   async importStats(competitionId: string, formData: FormData) {
     const file = formFile(formData, "file");
     if (!file) throw new ServiceError("file is required", 400);
@@ -301,63 +326,34 @@ export class CompetitionService {
       }
 
       if (errors.length > 0 && processed === 0) {
-        const errorCsv = toCsv(
-          errors.map((e) => ({
-            row: e.row,
-            message: e.message,
-          })),
-          ["row", "message"]
-        );
-        const errorPath = `${folder}/errors-${Date.now()}.csv`;
-        const errorBlob = new Blob([errorCsv], { type: "text/csv" });
-        const errorFile = new File([errorBlob], "import-errors.csv", {
-          type: "text/csv",
-        });
-        await this.storage.uploadPublicObject(
-          UPLOAD_BUCKET,
-          errorPath,
-          errorFile
-        );
+        const errorUrl = await this.uploadImportErrorCsv(folder, errors);
         await this.importJobs.upsert(competitionId, {
           status: "failed",
           progress: 100,
           message: "Import failed",
-          error_file_path: errorPath,
+          error_file_path: errorUrl,
         });
         return {
           message: "Import failed",
           status: "failed",
           progress: 100,
-          link: errorPath,
+          link: errorUrl,
         };
       }
 
       if (errors.length > 0) {
-        const errorCsv = toCsv(
-          errors.map((e) => ({ row: e.row, message: e.message })),
-          ["row", "message"]
-        );
-        const errorPath = `${folder}/errors-${Date.now()}.csv`;
-        const errorBlob = new Blob([errorCsv], { type: "text/csv" });
-        const errorFile = new File([errorBlob], "import-errors.csv", {
-          type: "text/csv",
-        });
-        await this.storage.uploadPublicObject(
-          UPLOAD_BUCKET,
-          errorPath,
-          errorFile
-        );
+        const errorUrl = await this.uploadImportErrorCsv(folder, errors);
         await this.importJobs.upsert(competitionId, {
           status: "failed",
           progress: 100,
           message: `Completed with ${errors.length} row errors`,
-          error_file_path: errorPath,
+          error_file_path: errorUrl,
         });
         return {
           message: "Import completed with errors",
           status: "failed",
           progress: 100,
-          link: errorPath,
+          link: errorUrl,
         };
       }
 

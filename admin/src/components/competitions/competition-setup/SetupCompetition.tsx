@@ -124,6 +124,10 @@ export default function SetupCompetition({
         getFixtures(competitionId),
       ]);
 
+      if ("error" in comp) {
+        throw new Error(comp.error);
+      }
+
       const mappedCompetition = {
         id: comp.id,
         title: comp.title,
@@ -136,7 +140,7 @@ export default function SetupCompetition({
           : "",
         structureId: comp.structure_id,
         location: comp.location,
-        competitionType: comp.competition_type_id,
+        competitionType: comp.competition_type_id ?? "",
       };
 
       const teamDetailsList = await Promise.all(

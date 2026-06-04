@@ -12,18 +12,63 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-export async function fetchPlayers(page: number = 1) {
+function statValue(value: unknown): string | number {
+  if (typeof value === "string" || typeof value === "number") return value;
+  return 0;
+}
+
+function normalizePlayersPage(unwrapped: unknown): PlayersResponse {
+  const body = isRecord(unwrapped) ? unwrapped : {};
+  const dataVal = body["data"];
+  const pageObj = isRecord(dataVal) ? dataVal : body;
+
+  return {
+    current_page: ensureNumber(pageObj["current_page"], 1),
+    data: ensureArray<Player>(pageObj["data"]),
+    first_page_url: String(pageObj["first_page_url"] ?? ""),
+    from: ensureNumber(pageObj["from"], 0),
+    last_page: ensureNumber(pageObj["last_page"], 1),
+    last_page_url: String(pageObj["last_page_url"] ?? ""),
+    links: ensureArray(pageObj["links"]),
+    next_page_url: (pageObj["next_page_url"] as string | null | undefined) ?? null,
+    path: String(pageObj["path"] ?? ""),
+    per_page: ensureNumber(pageObj["per_page"], 10),
+    prev_page_url: (pageObj["prev_page_url"] as string | null | undefined) ?? null,
+    to: ensureNumber(pageObj["to"], 0),
+    total: ensureNumber(pageObj["total"], 0),
+  };
+}
+
+export async function fetchPlayers(
+  page: number = 1
+): Promise<PlayersResponse | { error: string }> {
   try {
     const res = await apiClient.get(
       `/api/admin/players/without-team?page=${page}`
     );
-    return res.data;
+    return normalizePlayersPage(unwrapApi<unknown>(res.data));
   } catch (error) {
     console.error("Error fetching players:", error);
     return {
       error: "Error fetching players",
     };
   }
+}
+
+export async function fetchAllPlayersWithoutTeam(): Promise<Player[]> {
+  let page = 1;
+  let lastPage = 1;
+  const all: Player[] = [];
+
+  while (page <= lastPage) {
+    const result = await fetchPlayers(page);
+    if ("error" in result) break;
+    all.push(...result.data);
+    lastPage = result.last_page;
+    page += 1;
+  }
+
+  return all;
 }
 
 export async function fetchPlayer(playerId: string, competitionId?: string) {
@@ -35,71 +80,82 @@ export async function fetchPlayer(playerId: string, competitionId?: string) {
     }
 
     const res = await apiClient.get(url);
-    const playerData = res.data.data;
+    const playerData = unwrapApi<Record<string, unknown>>(res.data);
 
     // Handle both old format (stats array) and new format (statistics object)
     let statsArray: { title: string; value: string | number }[] = [];
     let statsMap = new Map<string, string | number>();
 
-    if (playerData.statistics) {
-      // New format: statistics object
-      const statistics = playerData.statistics;
+    const statisticsRaw = playerData["statistics"];
+    if (isRecord(statisticsRaw)) {
+      const statistics = statisticsRaw;
 
       // Convert statistics object to stats array format
       // Include all fields from the API response
       statsArray = [
-        { title: "matches", value: statistics.matches || 0 },
-        { title: "goals", value: statistics.goals || 0 },
-        { title: "assists", value: statistics.assists || 0 },
-        { title: "yellow cards", value: statistics.yellow_cards || statistics.yellow_card || 0 },
-        { title: "red cards", value: statistics.red_cards || statistics.red_card || 0 },
-        { title: "shots on target", value: statistics.shots_on_target || 0 },
-        { title: "shots off target", value: statistics.shots_off_target || 0 },
-        { title: "shots blocked", value: statistics.shots_blocked || 0 },
-        { title: "shot accuracy", value: statistics.shot_accuracy || 0 },
-        { title: "attempted pass", value: statistics.attempted_pass || 0 },
-        { title: "completed pass", value: statistics.completed_pass || 0 },
-        { title: "key passes", value: statistics.key_passes || 0 },
-        { title: "pass accuracy", value: statistics.pass_accuracy || 0 },
-        { title: "successful dribble", value: statistics.successful_dribble || 0 },
-        { title: "unsuccessful dribble", value: statistics.unsuccessful_dribble || 0 },
-        { title: "dribble success rate", value: statistics.dribble_success_rate || 0 },
-        { title: "foul won", value: statistics.foul_won || 0 },
-        { title: "foul commited", value: statistics.foul_commited || 0 },
-        { title: "tackle won", value: statistics.tackle_won || 0 },
-        { title: "interception", value: statistics.interception || 0 },
-        { title: "block", value: statistics.block || 0 },
-        { title: "clearance", value: statistics.clearance || 0 },
-        { title: "saves", value: statistics.saves || 0 },
-        { title: "total distance", value: statistics.total_distance || 0 },
-        { title: "max speed", value: statistics.max_speed || 0 },
-        { title: "high speed running", value: statistics.high_speed_running || 0 },
-        { title: "sprint distance", value: statistics.sprint_distance || 0 },
-        { title: "no of sprints", value: statistics.no_of_sprints || 0 },
-        { title: "accelerations", value: statistics.accelerations || 0 },
-        { title: "decelerations", value: statistics.decelerations || 0 },
-        { title: "impacts", value: statistics.impacts || 0 },
-        { title: "calories", value: statistics.calories || 0 },
-        { title: "time in red zone", value: statistics.time_in_red_zone || 0 },
-        { title: "distance per min", value: statistics.distance_per_min || 0 },
-        { title: "dsl", value: statistics.dsl || 0 },
-        { title: "hid per min", value: statistics.hid_per_min || 0 },
-        { title: "high intensity distance", value: statistics.high_intensity_distance || 0 },
-        { title: "hsr per min", value: statistics.hsr_per_min || 0 },
-        { title: "sprint distance per min", value: statistics.sprint_distance_per_min || 0 },
-        { title: "step balance l", value: statistics.step_balance_l || 0 },
-        { title: "step balance r", value: statistics.step_balance_r || 0 },
+        { title: "matches", value: statValue(statistics["matches"]) },
+        { title: "goals", value: statValue(statistics["goals"]) },
+        { title: "assists", value: statValue(statistics["assists"]) },
+        {
+          title: "yellow cards",
+          value: statValue(
+            statistics["yellow_cards"] ?? statistics["yellow_card"]
+          ),
+        },
+        {
+          title: "red cards",
+          value: statValue(statistics["red_cards"] ?? statistics["red_card"]),
+        },
+        { title: "shots on target", value: statValue(statistics["shots_on_target"]) },
+        { title: "shots off target", value: statValue(statistics["shots_off_target"]) },
+        { title: "shots blocked", value: statValue(statistics["shots_blocked"]) },
+        { title: "shot accuracy", value: statValue(statistics["shot_accuracy"]) },
+        { title: "attempted pass", value: statValue(statistics["attempted_pass"]) },
+        { title: "completed pass", value: statValue(statistics["completed_pass"]) },
+        { title: "key passes", value: statValue(statistics["key_passes"]) },
+        { title: "pass accuracy", value: statValue(statistics["pass_accuracy"]) },
+        { title: "successful dribble", value: statValue(statistics["successful_dribble"]) },
+        { title: "unsuccessful dribble", value: statValue(statistics["unsuccessful_dribble"]) },
+        { title: "dribble success rate", value: statValue(statistics["dribble_success_rate"]) },
+        { title: "foul won", value: statValue(statistics["foul_won"]) },
+        { title: "foul commited", value: statValue(statistics["foul_commited"]) },
+        { title: "tackle won", value: statValue(statistics["tackle_won"]) },
+        { title: "interception", value: statValue(statistics["interception"]) },
+        { title: "block", value: statValue(statistics["block"]) },
+        { title: "clearance", value: statValue(statistics["clearance"]) },
+        { title: "saves", value: statValue(statistics["saves"]) },
+        { title: "total distance", value: statValue(statistics["total_distance"]) },
+        { title: "max speed", value: statValue(statistics["max_speed"]) },
+        { title: "high speed running", value: statValue(statistics["high_speed_running"]) },
+        { title: "sprint distance", value: statValue(statistics["sprint_distance"]) },
+        { title: "no of sprints", value: statValue(statistics["no_of_sprints"]) },
+        { title: "accelerations", value: statValue(statistics["accelerations"]) },
+        { title: "decelerations", value: statValue(statistics["decelerations"]) },
+        { title: "impacts", value: statValue(statistics["impacts"]) },
+        { title: "calories", value: statValue(statistics["calories"]) },
+        { title: "time in red zone", value: statValue(statistics["time_in_red_zone"]) },
+        { title: "distance per min", value: statValue(statistics["distance_per_min"]) },
+        { title: "dsl", value: statValue(statistics["dsl"]) },
+        { title: "hid per min", value: statValue(statistics["hid_per_min"]) },
+        { title: "high intensity distance", value: statValue(statistics["high_intensity_distance"]) },
+        { title: "hsr per min", value: statValue(statistics["hsr_per_min"]) },
+        { title: "sprint distance per min", value: statValue(statistics["sprint_distance_per_min"]) },
+        { title: "step balance l", value: statValue(statistics["step_balance_l"]) },
+        { title: "step balance r", value: statValue(statistics["step_balance_r"]) },
       ];
 
       // Also create statsMap for backward compatibility
       statsArray.forEach((stat) => {
         statsMap.set(stat.title.toLowerCase(), stat.value);
       });
-    } else if (playerData.stats && Array.isArray(playerData.stats)) {
+    } else if (Array.isArray(playerData["stats"])) {
       // Old format: stats array
-      statsArray = playerData.stats;
+      statsArray = playerData["stats"] as {
+        title: string;
+        value: string | number;
+      }[];
       statsMap = new Map(
-        playerData.stats.map(
+        statsArray.map(
           (stat: { title: string; value: string | number }) => [
             stat.title.toLowerCase(),
             stat.value,
@@ -110,9 +166,10 @@ export async function fetchPlayer(playerId: string, competitionId?: string) {
 
     // Enrich with team name if we have a team_id
     let teamName: string | null = null;
-    if (playerData.team_id) {
+    const teamId = playerData["team_id"];
+    if (typeof teamId === "string" && teamId) {
       try {
-        const teamResponse = await fetchTeamDetails(playerData.team_id);
+        const teamResponse = await fetchTeamDetails(teamId);
         if (!("error" in teamResponse)) {
           teamName = teamResponse.name ?? null;
         }
@@ -121,35 +178,39 @@ export async function fetchPlayer(playerId: string, competitionId?: string) {
       }
     }
 
+    const sections = Array.isArray(playerData["sections"])
+      ? (playerData["sections"] as { title: string; content: string }[])
+      : [];
+    const teamNested = isRecord(playerData["team"])
+      ? playerData["team"]
+      : null;
+
     const player: PlayerDetails = {
-      id: playerData.id,
-      team_id: playerData.team_id,
-      // Prefer explicit team_name or nested team.name if API adds it, else use resolved teamName
-      team: playerData.team_name || playerData.team?.name || teamName,
-      profile_picture: playerData.profile_picture,
-      name: playerData.name,
-      nationality: playerData.nationality,
-      dob: playerData.dob,
-      weight: String(statsMap.get("weight") || playerData.weight || ""),
-      height: String(statsMap.get("height") || playerData.height || ""),
-      bio:
-        playerData.sections?.find(
-          (s: { title: string; content: string }) => s.title === "bio"
-        )?.content || null,
-      position: String(statsMap.get("position") || playerData.position || ""),
-      preferred_foot: (statsMap.get("preferred foot") as string) || playerData.preferred_foot || "",
+      id: String(playerData["id"] ?? ""),
+      team_id: (playerData["team_id"] as string | null) ?? null,
+      team:
+        (playerData["team_name"] as string) ||
+        (teamNested?.["name"] as string) ||
+        teamName,
+      profile_picture: (playerData["profile_picture"] as string | null) ?? null,
+      name: String(playerData["name"] ?? ""),
+      nationality: String(playerData["nationality"] ?? ""),
+      dob: String(playerData["dob"] ?? ""),
+      weight: String(statsMap.get("weight") || playerData["weight"] || ""),
+      height: String(statsMap.get("height") || playerData["height"] || ""),
+      bio: sections.find((s) => s.title === "bio")?.content || null,
+      position: String(statsMap.get("position") || playerData["position"] || ""),
+      preferred_foot:
+        (statsMap.get("preferred foot") as string) ||
+        String(playerData["preferred_foot"] ?? ""),
       previous_experience:
-        playerData.sections?.find(
-          (s: { title: string; content: string }) =>
-            s.title === "previous experience"
-        )?.content || null,
+        sections.find((s) => s.title === "previous experience")?.content ||
+        null,
       reason_for_joining:
-        playerData.sections?.find(
-          (s: { title: string; content: string }) =>
-            s.title === "reason for joining"
-        )?.content || null,
-      created_at: playerData.created_at,
-      updated_at: playerData.updated_at,
+        sections.find((s) => s.title === "reason for joining")?.content ||
+        null,
+      created_at: String(playerData["created_at"] ?? ""),
+      updated_at: String(playerData["updated_at"] ?? ""),
       stats: statsArray,
     };
 
@@ -316,30 +377,7 @@ export async function fetchAllPlayers(page: number = 1) {
   // }
   return await apiClient
     .get(`/api/admin/players?page=${page}`)
-    .then((res) => {
-      const unwrapped = unwrapApi<unknown>(res.data);
-      const body = isRecord(unwrapped) ? unwrapped : {};
-      const dataVal = body["data"];
-      const pageObj = isRecord(dataVal) ? dataVal : body;
-
-      const normalized: PlayersResponse = {
-        current_page: ensureNumber(pageObj["current_page"], 1),
-        data: ensureArray<Player>(pageObj["data"]),
-        first_page_url: String(pageObj["first_page_url"] ?? ""),
-        from: ensureNumber(pageObj["from"], 0),
-        last_page: ensureNumber(pageObj["last_page"], 1),
-        last_page_url: String(pageObj["last_page_url"] ?? ""),
-        links: ensureArray(pageObj["links"]),
-        next_page_url: (pageObj["next_page_url"] as string | null | undefined) ?? null,
-        path: String(pageObj["path"] ?? ""),
-        per_page: ensureNumber(pageObj["per_page"], 10),
-        prev_page_url: (pageObj["prev_page_url"] as string | null | undefined) ?? null,
-        to: ensureNumber(pageObj["to"], 0),
-        total: ensureNumber(pageObj["total"], 0),
-      };
-
-      return normalized;
-    })
+    .then((res) => normalizePlayersPage(unwrapApi<unknown>(res.data)))
     .catch((error) => {
       console.error("Error fetching all players:", error);
       const empty: PlayersResponse = {

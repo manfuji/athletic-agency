@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import apiClient from "@/lib/axios";
 import { Team } from "@/types/teams";
 import { unwrapApi } from "@/lib/unwrapApi";
+import { normalizeTeamRow, teamPlayersCountFromRow } from "@/lib/normalize";
 
 interface TeamResponse {
   data: Team[];
@@ -17,15 +18,6 @@ const emptyTeamResponse: TeamResponse = {
   per_page: 10,
 };
 
-function normalizeTeamRow(team: Team & Record<string, unknown>): Team {
-  return {
-    ...team,
-    shortCode:
-      team.shortCode ??
-      (typeof team.short_code === "string" ? team.short_code : ""),
-  };
-}
-
 export async function fetchTeams(competitionId: string, page: number = 1) {
   return await apiClient
     .get(`/api/admin/competitions/${competitionId}/teams?page=${page}`)
@@ -33,9 +25,15 @@ export async function fetchTeams(competitionId: string, page: number = 1) {
       const pageData = unwrapApi<TeamResponse>(res.data);
       const raw = Array.isArray(pageData?.data) ? pageData.data : [];
       return {
-        data: raw.map((t) =>
-          normalizeTeamRow(t as Team & Record<string, unknown>)
-        ),
+        data: raw.map((t) => {
+          const normalized = normalizeTeamRow(
+            t as Team & Record<string, unknown>
+          );
+          return {
+            ...normalized,
+            players_count: teamPlayersCountFromRow(t),
+          };
+        }),
         last_page:
           typeof pageData?.last_page === "number" ? pageData.last_page : 1,
         per_page:

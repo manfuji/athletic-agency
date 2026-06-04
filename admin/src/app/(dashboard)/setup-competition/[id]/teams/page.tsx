@@ -1,6 +1,6 @@
-import { fetchTeams, fetchTeamDetails } from '@/actions/teams';
+import { fetchTeams } from '@/actions/teams';
 import { getImageUrl } from '@/lib/api';
-import { teamDetailsPlayerCount } from '@/lib/normalize';
+import { teamPlayersCountFromRow } from '@/lib/normalize';
 import { columns, TeamType } from '@/lib/team/columns';
 import { DataTable } from '@/lib/team/data-table';
 import { redirect } from 'next/navigation';
@@ -24,20 +24,15 @@ export default async function CompetitionTeamsPage({
 
   try {
     const initialResponse = await fetchTeams(competitionId, 1);
-    initialTeams = await Promise.all(
-      initialResponse.data.map(async (team: Team) => {
-        const teamDetails = await fetchTeamDetails(team.id);
-        return {
-          id: team.id,
-          name: team.name,
-          code: team.shortCode,
-          icon: getImageUrl(team.logo) || '/Avatar.png',
-          players: teamDetailsPlayerCount(teamDetails),
-          joined: new Date(team.created_at),
-          slug: team.slug,
-        };
-      })
-    );
+    initialTeams = initialResponse.data.map((team: Team) => ({
+      id: team.id,
+      name: team.name,
+      code: team.shortCode,
+      icon: getImageUrl(team.logo) || '/Avatar.png',
+      players: team.players_count ?? teamPlayersCountFromRow(team),
+      joined: new Date(team.created_at),
+      slug: team.slug,
+    }));
     initialPageCount = initialResponse.last_page;
     perPage = initialResponse.per_page;
   } catch (error) {

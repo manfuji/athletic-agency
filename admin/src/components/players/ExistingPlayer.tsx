@@ -12,7 +12,7 @@ import CustomButton from "@/reusables/CustomButton";
 import { cols } from "@/lib/player/player-columns";
 import { ExistingDataTable } from "@/lib/player/player-data-table";
 import { toast } from "sonner";
-import { addExistingPlayers, fetchPlayers } from "@/actions/players";
+import { addExistingPlayers, fetchAllPlayersWithoutTeam } from "@/actions/players";
 import { getImageUrl } from "@/lib/api";
 
 interface ExistingPlayerModalProps {
@@ -46,7 +46,7 @@ export default function ExistingPlayer({
     const loadPlayers = async () => {
       try {
         setLoading(true);
-        const data = await fetchPlayers();
+        const data = await fetchAllPlayersWithoutTeam();
         const availablePlayers = data
           .filter((player: Player) => !player.team_id)
           .map((player: Player) => ({

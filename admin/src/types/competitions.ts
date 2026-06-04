@@ -14,4 +14,7 @@ export interface CompetitionFromAPI {
   location: string;
   status: string;
   isPublished: number;
+  competition_type_id?: string | null;
+  /** Raw DB field before client normalization */
+  is_published?: boolean;
 }

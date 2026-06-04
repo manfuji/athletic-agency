@@ -31,6 +31,8 @@ export default function ResultsTab({ fixtures }: ResultsTabProps) {
         <Filter
           options={filterOptions}
           placeholder="Filter by match date"
+          value={filterDate ?? 'All dates'}
+          defaultValue="All dates"
           onValueChange={(value) =>
             setFilterDate(value === 'All dates' ? undefined : value)
           }

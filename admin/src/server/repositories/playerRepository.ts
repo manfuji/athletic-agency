@@ -45,7 +45,9 @@ export class PlayerSupabaseRepository implements IPlayerRepository {
 
     const { data, error, count } = await this.db
       .from("players")
-      .select("id,name,profile_picture,team_id", { count: "exact" })
+      .select("id,name,profile_picture,team_id,position,created_at", {
+        count: "exact",
+      })
       .is("team_id", null)
       .range(from, to)
       .order("created_at", { ascending: false });
