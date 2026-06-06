@@ -74,4 +74,5 @@ export interface PlayerDetails {
   updated_at: string;
   team: string | null;
   stats: { title: string; value: string | number }[];
+  statistics_competition_id?: string | null;
 }

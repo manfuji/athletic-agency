@@ -26,6 +26,9 @@ export interface IPlayerRepository {
   deletePlayer(playerId: string): Promise<void>;
   setTeamId(playerId: string, teamId: string | null): Promise<void>;
   listByTeamIds(teamIds: string[]): Promise<unknown[]>;
+  listCompetitionStatsForExport(
+    competitionId: string
+  ): Promise<Map<string, Record<string, unknown>>>;
   upsertCompetitionPlayerStats(
     playerId: string,
     competitionId: string,
@@ -105,6 +108,8 @@ export class PlayerSupabaseRepository implements IPlayerRepository {
     if (!player) throw new ServiceError("Player not found", 404);
 
     let statistics: Record<string, unknown> | null = null;
+    let statisticsCompetitionId: string | null = null;
+
     if (competitionId) {
       const { data: statsRow } = await this.db
         .from("player_statistics")
@@ -113,13 +118,35 @@ export class PlayerSupabaseRepository implements IPlayerRepository {
         .eq("competition_id", competitionId)
         .is("fixture_id", null)
         .maybeSingle();
-      if (statsRow) statistics = statsRow as Record<string, unknown>;
+      if (statsRow) {
+        statistics = statsRow as Record<string, unknown>;
+        statisticsCompetitionId = competitionId;
+      }
+    } else {
+      const { data: statsRow } = await this.db
+        .from("player_statistics")
+        .select("*")
+        .eq("player_id", playerId)
+        .not("competition_id", "is", null)
+        .is("fixture_id", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (statsRow) {
+        const row = statsRow as Record<string, unknown>;
+        statistics = row;
+        statisticsCompetitionId =
+          typeof row.competition_id === "string" ? row.competition_id : null;
+      }
     }
 
     const row = player as Record<string, unknown>;
     return {
       ...row,
       ...(statistics ? { statistics } : {}),
+      ...(statisticsCompetitionId
+        ? { statistics_competition_id: statisticsCompetitionId }
+        : {}),
       sections: row.sections ?? [],
     };
   }
@@ -174,6 +201,25 @@ export class PlayerSupabaseRepository implements IPlayerRepository {
 
     if (error) throw new ServiceError(error.message, 500);
     return data ?? [];
+  }
+
+  async listCompetitionStatsForExport(
+    competitionId: string
+  ): Promise<Map<string, Record<string, unknown>>> {
+    const { data, error } = await this.db
+      .from("player_statistics")
+      .select("*")
+      .eq("competition_id", competitionId)
+      .is("fixture_id", null);
+
+    if (error) throw new ServiceError(error.message, 500);
+
+    const map = new Map<string, Record<string, unknown>>();
+    for (const row of data ?? []) {
+      const playerId = (row as { player_id?: string }).player_id;
+      if (playerId) map.set(playerId, row as Record<string, unknown>);
+    }
+    return map;
   }
 
   async upsertCompetitionPlayerStats(

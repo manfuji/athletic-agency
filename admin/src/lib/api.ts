@@ -1,4 +1,9 @@
 import { toast } from "sonner";
+/**
+ * Legacy client fetch helpers live here for backward compatibility.
+ * Prefer `@/actions/*` server actions (with unwrapApi) for new data fetching.
+ * Supported long-term export: `getImageUrl` only.
+ */
 import {
   Fixture,
   Stage,

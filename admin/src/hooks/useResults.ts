@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Fixture } from '@/types/fixtures';
-import { fetchFixtures, fetchTeams } from '@/lib/api';
+import { getFixtures } from '@/actions/fixtures';
 
 interface UseResultsReturn {
   fixtures: { [date: string]: Fixture[] };
@@ -18,36 +18,21 @@ export const useResults = (competitionId: string): UseResultsReturn => {
     const loadFixtures = async () => {
       setIsLoading(true);
       try {
-        const [fixturesData, teamsData] = await Promise.all([
-          fetchFixtures(competitionId),
-          fetchTeams(competitionId),
-        ]);
+        const fixturesData = await getFixtures(competitionId);
+        if (fixturesData && typeof fixturesData === 'object' && 'error' in fixturesData) {
+          throw new Error(String(fixturesData.error));
+        }
 
-        const enrichedFixtures = Object.fromEntries(
-          Object.entries(fixturesData).map(([date, fixtureList]) => {
-            const enrichedList = fixtureList.map((fixture) => ({
-              ...fixture,
-              home_team: {
-                id: fixture.home_team.id,
-                name: fixture.home_team.name,
-                logo:
-                  teamsData.data.find((t) => t.id === fixture.home_team.id)
-                    ?.logo || null,
-              },
-              away_team: {
-                id: fixture.away_team.id,
-                name: fixture.away_team.name,
-                logo:
-                  teamsData.data.find((t) => t.id === fixture.away_team.id)
-                    ?.logo || null,
-              },
-              result: fixture.result ?? null,
-            }));
-            return [new Date(date).toISOString().split('T')[0], enrichedList];
-          })
+        const normalized = Object.fromEntries(
+          Object.entries(fixturesData as { [date: string]: Fixture[] }).map(
+            ([date, fixtureList]) => [
+              new Date(date).toISOString().split('T')[0],
+              fixtureList,
+            ]
+          )
         );
 
-        setFixtures(enrichedFixtures);
+        setFixtures(normalized);
       } catch (error) {
         console.error('Error loading fixtures:', error);
         toast.error('Failed to load fixtures');

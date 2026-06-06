@@ -6,7 +6,7 @@ interface Stat {
   label: string;
   value: string | number;
   suffix?: string;
-  category: "Attack" | "Defense & Discipline" | "Physical";
+  category: "Attack" | "Defense & Discipline" | "General" | "Physical";
 }
 
 interface Competition {

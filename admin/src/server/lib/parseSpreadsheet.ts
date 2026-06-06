@@ -1,31 +1,11 @@
-const STAT_COLUMN_KEYS = [
-  "total_shots",
-  "shots_on_target",
-  "shots_off_target",
-  "dribbles_successful",
-  "dribbles_attempted",
-  "times_fouled",
-  "dispossessed",
-  "offsides",
-  "tackles",
-  "interceptions",
-  "fouls_committed",
-  "clearances",
-  "dribbles_defended",
-  "blocks",
-  "own_goals",
-  "minutes_played",
-] as const;
+import {
+  STAT_COLUMN_KEYS,
+  PLAYER_STATS_EXPORT_COLUMNS,
+  type StatColumnKey,
+} from "@/lib/playerStatistics";
 
-export type StatColumnKey = (typeof STAT_COLUMN_KEYS)[number];
-
-export const PLAYER_STATS_EXPORT_COLUMNS = [
-  "id",
-  "name",
-  "team_id",
-  "position",
-  ...STAT_COLUMN_KEYS,
-] as const;
+export type { StatColumnKey };
+export { PLAYER_STATS_EXPORT_COLUMNS };
 
 function parseCsvLine(line: string): string[] {
   const cells: string[] = [];

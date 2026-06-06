@@ -5,6 +5,7 @@ import {
   statPatchFromRow,
   PLAYER_STATS_EXPORT_COLUMNS,
 } from "@/server/lib/parseSpreadsheet";
+import { STAT_COLUMN_KEYS } from "@/lib/playerStatistics";
 import type {
   ICompetitionRepository,
   ICompetitionTeamRepository,
@@ -408,10 +409,25 @@ export class CompetitionService {
     const teamIds =
       await this.competitionTeams.listTeamIdsInCompetition(competitionId);
     const players = await this.players.listByTeamIds(teamIds);
-    return toCsv(
-      players as Record<string, unknown>[],
-      PLAYER_STATS_EXPORT_COLUMNS
-    );
+    const statsByPlayer =
+      await this.players.listCompetitionStatsForExport(competitionId);
+
+    const rows = (players as Record<string, unknown>[]).map((player) => {
+      const playerId = String(player.id ?? "");
+      const statsRow = statsByPlayer.get(playerId) ?? {};
+      const statValues = Object.fromEntries(
+        STAT_COLUMN_KEYS.map((key) => [key, statsRow[key] ?? ""])
+      );
+      return {
+        id: playerId,
+        name: player.name ?? "",
+        team_id: player.team_id ?? "",
+        position: player.position ?? "",
+        ...statValues,
+      };
+    });
+
+    return toCsv(rows, PLAYER_STATS_EXPORT_COLUMNS);
   }
 
 }

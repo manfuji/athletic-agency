@@ -1,19 +1,22 @@
 import { fetchPlayer } from "@/actions/players";
 import PlayerDetailClient from "@/app/(dashboard)/setup-competition/[id]/teams/[teamId]/players/[playerId]/PlayerDetailClient";
 import { PlayerDetails } from "@/types/players";
+
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string; teamId: string; playerId: string }>;
+  params: Promise<{ id: string; playerId: string }>;
 }) {
-  const { id, teamId, playerId } = await params;
-  const data = (await fetchPlayer(playerId, id)) as PlayerDetails;
+  const { id: teamId, playerId } = await params;
+  const result = await fetchPlayer(playerId);
+  const data = result && !("error" in result) ? (result as PlayerDetails) : null;
+
   return (
     <>
       {data && (
         <PlayerDetailClient
           player={data}
-          competitionId={id}
+          competitionId=""
           teamId={teamId}
           playerId={playerId}
         />

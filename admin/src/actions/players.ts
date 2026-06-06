@@ -6,15 +6,11 @@ import { PlayerDetails } from "@/types/players";
 import { fetchTeamDetails } from "@/actions/teams";
 import { unwrapApi } from "@/lib/unwrapApi";
 import { ensureArray, ensureNumber } from "@/lib/normalize";
+import { competitionStatsToStatsArray } from "@/lib/playerStatistics";
 import type { PlayersResponse, Player } from "@/types/players";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function statValue(value: unknown): string | number {
-  if (typeof value === "string" || typeof value === "number") return value;
-  return 0;
 }
 
 function normalizePlayersPage(unwrapped: unknown): PlayersResponse {
@@ -88,63 +84,7 @@ export async function fetchPlayer(playerId: string, competitionId?: string) {
 
     const statisticsRaw = playerData["statistics"];
     if (isRecord(statisticsRaw)) {
-      const statistics = statisticsRaw;
-
-      // Convert statistics object to stats array format
-      // Include all fields from the API response
-      statsArray = [
-        { title: "matches", value: statValue(statistics["matches"]) },
-        { title: "goals", value: statValue(statistics["goals"]) },
-        { title: "assists", value: statValue(statistics["assists"]) },
-        {
-          title: "yellow cards",
-          value: statValue(
-            statistics["yellow_cards"] ?? statistics["yellow_card"]
-          ),
-        },
-        {
-          title: "red cards",
-          value: statValue(statistics["red_cards"] ?? statistics["red_card"]),
-        },
-        { title: "shots on target", value: statValue(statistics["shots_on_target"]) },
-        { title: "shots off target", value: statValue(statistics["shots_off_target"]) },
-        { title: "shots blocked", value: statValue(statistics["shots_blocked"]) },
-        { title: "shot accuracy", value: statValue(statistics["shot_accuracy"]) },
-        { title: "attempted pass", value: statValue(statistics["attempted_pass"]) },
-        { title: "completed pass", value: statValue(statistics["completed_pass"]) },
-        { title: "key passes", value: statValue(statistics["key_passes"]) },
-        { title: "pass accuracy", value: statValue(statistics["pass_accuracy"]) },
-        { title: "successful dribble", value: statValue(statistics["successful_dribble"]) },
-        { title: "unsuccessful dribble", value: statValue(statistics["unsuccessful_dribble"]) },
-        { title: "dribble success rate", value: statValue(statistics["dribble_success_rate"]) },
-        { title: "foul won", value: statValue(statistics["foul_won"]) },
-        { title: "foul commited", value: statValue(statistics["foul_commited"]) },
-        { title: "tackle won", value: statValue(statistics["tackle_won"]) },
-        { title: "interception", value: statValue(statistics["interception"]) },
-        { title: "block", value: statValue(statistics["block"]) },
-        { title: "clearance", value: statValue(statistics["clearance"]) },
-        { title: "saves", value: statValue(statistics["saves"]) },
-        { title: "total distance", value: statValue(statistics["total_distance"]) },
-        { title: "max speed", value: statValue(statistics["max_speed"]) },
-        { title: "high speed running", value: statValue(statistics["high_speed_running"]) },
-        { title: "sprint distance", value: statValue(statistics["sprint_distance"]) },
-        { title: "no of sprints", value: statValue(statistics["no_of_sprints"]) },
-        { title: "accelerations", value: statValue(statistics["accelerations"]) },
-        { title: "decelerations", value: statValue(statistics["decelerations"]) },
-        { title: "impacts", value: statValue(statistics["impacts"]) },
-        { title: "calories", value: statValue(statistics["calories"]) },
-        { title: "time in red zone", value: statValue(statistics["time_in_red_zone"]) },
-        { title: "distance per min", value: statValue(statistics["distance_per_min"]) },
-        { title: "dsl", value: statValue(statistics["dsl"]) },
-        { title: "hid per min", value: statValue(statistics["hid_per_min"]) },
-        { title: "high intensity distance", value: statValue(statistics["high_intensity_distance"]) },
-        { title: "hsr per min", value: statValue(statistics["hsr_per_min"]) },
-        { title: "sprint distance per min", value: statValue(statistics["sprint_distance_per_min"]) },
-        { title: "step balance l", value: statValue(statistics["step_balance_l"]) },
-        { title: "step balance r", value: statValue(statistics["step_balance_r"]) },
-      ];
-
-      // Also create statsMap for backward compatibility
+      statsArray = competitionStatsToStatsArray(statisticsRaw);
       statsArray.forEach((stat) => {
         statsMap.set(stat.title.toLowerCase(), stat.value);
       });
@@ -212,6 +152,9 @@ export async function fetchPlayer(playerId: string, competitionId?: string) {
       created_at: String(playerData["created_at"] ?? ""),
       updated_at: String(playerData["updated_at"] ?? ""),
       stats: statsArray,
+      statistics_competition_id:
+        (playerData["statistics_competition_id"] as string | null | undefined) ??
+        null,
     };
 
     return player;

@@ -242,7 +242,14 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
         setProgress(100)
         setImportState("success")
         toast.success("Player stats imported successfully!")
+        if (formState.selectedCompetition) {
+          sessionStorage.setItem(
+            "lastImportedCompetitionId",
+            formState.selectedCompetition
+          )
+        }
         queryClient.invalidateQueries({ queryKey: ["players"] })
+        queryClient.invalidateQueries({ queryKey: ["player"] })
         setTimeout(() => onImportComplete(), 1000)
       }
 
@@ -380,7 +387,14 @@ export default function ImportPlayerStatsModal({ isOpen, onClose, onImportComple
         setProgress(100)
         setImportState("success")
                 toast.success("Player stats imported successfully!")
+                if (formState.selectedCompetition) {
+                  sessionStorage.setItem(
+                    "lastImportedCompetitionId",
+                    formState.selectedCompetition
+                  )
+                }
                 queryClient.invalidateQueries({ queryKey: ["players"] })
+                queryClient.invalidateQueries({ queryKey: ["player"] })
         setTimeout(() => {
           onImportComplete()
         }, 1000)

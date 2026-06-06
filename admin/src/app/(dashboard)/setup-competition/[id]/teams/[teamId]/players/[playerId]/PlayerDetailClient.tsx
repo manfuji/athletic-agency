@@ -15,8 +15,12 @@ import { fetchPlayer } from "@/actions/players";
 import { PlayerDetails } from "@/types/players";
 import { StatsAccordion } from "@/lib/player/stats-accordion";
 import { getCompetitions } from "@/actions/competitions";
+import {
+  buildImportableAccordionStats,
+  STAT_LABELS,
+  type StatDisplayCategory,
+} from "@/lib/playerStatistics";
 
-// Register English locale
 countries.registerLocale(enLocale);
 
 interface PlayerDetailClientProps {
@@ -30,11 +34,25 @@ interface Stat {
   label: string;
   value: string | number;
   suffix?: string;
-  category: "Attack" | "Defense & Discipline" | "Physical";
+  category: StatDisplayCategory;
 }
 
-type CompetitionStatsFilter = "all" | string; // string for competition ID
+type CompetitionStatsFilter = "all" | string;
 
+function resolveInitialCompetitionFilter(
+  competitionId: string,
+  player: PlayerDetails
+): CompetitionStatsFilter {
+  if (competitionId) return competitionId;
+  if (player.statistics_competition_id) {
+    return player.statistics_competition_id;
+  }
+  if (typeof window !== "undefined") {
+    const stored = sessionStorage.getItem("lastImportedCompetitionId");
+    if (stored) return stored;
+  }
+  return "all";
+}
 
 export default function PlayerDetailClient({
   player: initialPlayer,
@@ -44,17 +62,19 @@ export default function PlayerDetailClient({
 }: PlayerDetailClientProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [competitionFilter, setCompetitionFilter] =
-    useState<CompetitionStatsFilter>(competitionId || "all");
+    useState<CompetitionStatsFilter>(() =>
+      resolveInitialCompetitionFilter(competitionId, initialPlayer)
+    );
 
-  // Fetch competitions for the filter dropdown
   const { data: competitionsData } = useQuery({
     queryKey: ["competitions"],
     queryFn: getCompetitions,
   });
 
-  const competitions = competitionsData && !("error" in competitionsData)
-    ? competitionsData
-    : [];
+  const competitions =
+    competitionsData && !("error" in competitionsData)
+      ? competitionsData
+      : [];
 
   const { data: player } = useQuery<PlayerDetails>({
     queryKey: ["player", playerId, competitionFilter],
@@ -101,96 +121,79 @@ export default function PlayerDetailClient({
   const getTeamName = (team: string): string => {
     if (!team) return "Unknown Team";
     return team;
-  }
+  };
+
   const statsMap = new Map(
     player?.stats.map((stat) => [stat.title.toLowerCase(), stat.value])
   );
 
-  // Helper function to format numeric values to at most 3 decimal places
   const formatStatValue = (value: string | number): string | number => {
     if (typeof value === "number") {
-      // Format to 3 decimal places and remove trailing zeros
       return parseFloat(value.toFixed(3));
     }
     if (typeof value === "string") {
-      // Try to parse as number
       const numValue = parseFloat(value);
       if (!isNaN(numValue) && isFinite(numValue)) {
-        // Format to 3 decimal places and remove trailing zeros
         return parseFloat(numValue.toFixed(3));
       }
     }
     return value;
   };
 
-  const stats = [
+  const getStatValue = (label: string, defaultValue: number | string = 0) =>
+    statsMap.get(label.toLowerCase()) ?? defaultValue;
+
+  const profileCards: {
+    value: string | number | undefined;
+    label: string;
+    suffix?: string;
+  }[] = [
     { value: player?.position, label: "Position" },
     { value: player?.preferred_foot, label: "Preferred Foot" },
     { value: player?.weight || "N/A", label: "Weight", suffix: "kg" },
     { value: player?.height || "N/A", label: "Height", suffix: "cm" },
-    { value: formatStatValue(statsMap.get("matches") || "0"), label: "Matches" },
-    { value: formatStatValue(statsMap.get("goals") || "0"), label: "Goals" },
-    { value: formatStatValue(statsMap.get("yellow cards") || "0"), label: "Yellow Cards" },
-    { value: formatStatValue(statsMap.get("red cards") || "0"), label: "Red Cards" },
-    { value: formatStatValue(statsMap.get("shot accuracy") || statsMap.get("shooting accuracy") || "0"), label: "Shooting Accuracy", suffix: "%" },
-    { value: formatStatValue(statsMap.get("pass accuracy") || "0"), label: "Pass Accuracy", suffix: "%" },
-    { value: formatStatValue(statsMap.get("max speed") || "0"), label: "Max Speed", suffix: "m/s" },
-    { value: formatStatValue(statsMap.get("total distance") || "0"), label: "Total Distance", suffix: "m" },
   ];
 
-  // Helper function to get stat value from statsMap
-  const getStatValue = (key: string, defaultValue: number | string = 0): number | string => {
-    return statsMap.get(key.toLowerCase()) || defaultValue;
-  };
-
-  // Map actual player stats to accordion format
-  const accordionStats: Stat[] = [
-    // Attack stats
-    { label: "Saves", value: formatStatValue(getStatValue("saves")), category: "Attack" },
-    { label: "Goals", value: formatStatValue(getStatValue("goals")), category: "Attack" },
-    { label: "Shots on target", value: formatStatValue(getStatValue("shots on target")), category: "Attack" },
-    { label: "Shots Blocked", value: formatStatValue(getStatValue("shots blocked")), category: "Attack" },
-    { label: "Shooting Accuracy", value: formatStatValue(getStatValue("shot accuracy", 0)), suffix: "%", category: "Attack" },
-    { label: "Attempted pass", value: formatStatValue(getStatValue("attempted pass")), category: "Attack" },
-    { label: "Completed pass", value: formatStatValue(getStatValue("completed pass")), category: "Attack" },
-    { label: "Key passes", value: formatStatValue(getStatValue("key passes")), category: "Attack" },
-    { label: "Pass accuracy", value: formatStatValue(getStatValue("pass accuracy", 0)), suffix: "%", category: "Attack" },
-    { label: "Assists", value: formatStatValue(getStatValue("assists")), category: "Attack" },
-    { label: "Successful Dribble", value: formatStatValue(getStatValue("successful dribble")), category: "Attack" },
-    { label: "Unsuccessful Dribble", value: formatStatValue(getStatValue("unsuccessful dribble")), category: "Attack" },
-    { label: "Dribble success rate", value: formatStatValue(getStatValue("dribble success rate", 0)), suffix: "%", category: "Attack" },
-    { label: "Foul won", value: formatStatValue(getStatValue("foul won")), category: "Attack" },
-
-    // Defense & Discipline stats
-    { label: "Foul committed", value: formatStatValue(getStatValue("foul commited")), category: "Defense & Discipline" },
-    { label: "Tackle won", value: formatStatValue(getStatValue("tackle won")), category: "Defense & Discipline" },
-    { label: "Interception", value: formatStatValue(getStatValue("interception")), category: "Defense & Discipline" },
-    { label: "Block", value: formatStatValue(getStatValue("block")), category: "Defense & Discipline" },
-    { label: "Clearance", value: formatStatValue(getStatValue("clearance")), category: "Defense & Discipline" },
-    { label: "Yellow card", value: formatStatValue(getStatValue("yellow cards")), category: "Defense & Discipline" },
-    { label: "Red card", value: formatStatValue(getStatValue("red cards")), category: "Defense & Discipline" },
-
-    // Physical stats
-    { label: "Calories", value: formatStatValue(getStatValue("calories")), suffix: "kcal", category: "Physical" },
-    { label: "Deceleration", value: formatStatValue(getStatValue("decelerations")), suffix: "m/s²", category: "Physical" },
-    { label: "DSL", value: formatStatValue(getStatValue("dsl")), category: "Physical" },
-    { label: "HID Per Min", value: formatStatValue(getStatValue("hid per min")), suffix: "m", category: "Physical" },
-    { label: "High Intensity Distance", value: formatStatValue(getStatValue("high intensity distance")), suffix: "m", category: "Physical" },
-    { label: "High Speed Running", value: formatStatValue(getStatValue("high speed running")), suffix: "m", category: "Physical" },
-    { label: "HSR Per Min", value: formatStatValue(getStatValue("hsr per min")), suffix: "m", category: "Physical" },
-    { label: "Impacts", value: formatStatValue(getStatValue("impacts")), category: "Physical" },
-    { label: "Max Speed", value: formatStatValue(getStatValue("max speed")), suffix: "m/s", category: "Physical" },
-    { label: "Number of Sprints", value: formatStatValue(getStatValue("no of sprints")), category: "Physical" },
-    { label: "Sprint Distance Per Min", value: formatStatValue(getStatValue("sprint distance per min")), suffix: "m", category: "Physical" },
-    { label: "Total Distance", value: formatStatValue(getStatValue("total distance")), suffix: "m", category: "Physical" },
-    { label: "Step Balance (L)", value: formatStatValue(getStatValue("step balance l", 0)), suffix: "%", category: "Physical" },
-    { label: "Step Balance (R)", value: formatStatValue(getStatValue("step balance r", 0)), suffix: "%", category: "Physical" },
-    { label: "Time In Red Zone", value: formatStatValue(getStatValue("time in red zone")), suffix: "m", category: "Physical" },
+  const importedHighlightCards: {
+    value: string | number;
+    label: string;
+    suffix?: string;
+  }[] = [
+    {
+      value: formatStatValue(getStatValue(STAT_LABELS.minutes_played)),
+      label: STAT_LABELS.minutes_played,
+    },
+    {
+      value: formatStatValue(getStatValue(STAT_LABELS.shots_on_target)),
+      label: STAT_LABELS.shots_on_target,
+    },
+    {
+      value: formatStatValue(getStatValue(STAT_LABELS.tackles)),
+      label: STAT_LABELS.tackles,
+    },
+    {
+      value: formatStatValue(getStatValue(STAT_LABELS.interceptions)),
+      label: STAT_LABELS.interceptions,
+    },
   ];
+
+  const stats = [...profileCards, ...importedHighlightCards];
+
+  const accordionStats: Stat[] = buildImportableAccordionStats(statsMap).map(
+    (stat) => ({
+      ...stat,
+      value: formatStatValue(stat.value),
+    })
+  );
 
   const handleStatsFilterChange = (value: CompetitionStatsFilter) => {
     setCompetitionFilter(value);
   };
+
+  const activeCompetitionId =
+    competitionFilter === "all"
+      ? player?.statistics_competition_id ?? competitionId
+      : competitionFilter;
 
   const accordionItems = [
     {
@@ -200,7 +203,7 @@ export default function PlayerDetailClient({
         <StatsAccordion
           stats={accordionStats}
           competitions={competitions}
-          currentCompetitionId={competitionId}
+          currentCompetitionId={activeCompetitionId || undefined}
           onFilterChange={handleStatsFilterChange}
         />
       ),
@@ -225,7 +228,6 @@ export default function PlayerDetailClient({
 
   return (
     <div className="w-[85%] px-4 py-6 ml-8">
-      {/* Profile Picture */}
       <div className="flex justify-center">
         {player?.profile_picture ? (
           <Image
@@ -246,12 +248,10 @@ export default function PlayerDetailClient({
         )}
       </div>
 
-      {/* Name */}
       <h1 className="text-center mt-4 font-evogria text-[#1D2939] text-[27px] font-normal">
         {player?.name}
       </h1>
 
-      {/* Nationality and DOB */}
       <div className="flex justify-center gap-4 mt-2">
         <div className="flex items-center gap-2 border border-[#D0D5DD] bg-white py-2 px-4 rounded-full">
           <Image
@@ -270,7 +270,6 @@ export default function PlayerDetailClient({
             {getCountryName(player?.nationality || "")}
           </p>
         </div>
-        {/* added team name */}
         <div className="flex justify-between border border-[#D0D5DD] gap-2 bg-white py-2 px-4 rounded-full">
           <Trophy className="w-5 h-5 inline-block text-[#344054]" />
           <p className="text-[#344054] font-inter md:text-[16px] text-[14px]">
@@ -285,7 +284,6 @@ export default function PlayerDetailClient({
         </div>
       </div>
 
-      {/* Edit Profile Button */}
       <div className="flex justify-center my-6">
         <CustomButton
           text="Edit Profile"
@@ -296,7 +294,6 @@ export default function PlayerDetailClient({
         />
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 ml-0 mr-auto">
         {stats.map((stat) => (
           <StatCard
@@ -307,10 +304,8 @@ export default function PlayerDetailClient({
         ))}
       </div>
 
-      {/* Player Accordion */}
       <PlayerAccordion items={accordionItems} />
 
-      {/* Edit Modal */}
       {isEditModalOpen && (
         <CreatePlayer
           isOpen={isEditModalOpen}
