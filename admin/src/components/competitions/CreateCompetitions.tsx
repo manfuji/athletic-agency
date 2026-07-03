@@ -244,16 +244,10 @@ export default function CreateCompetitionModal({
     return changedFields;
   };
 
-  const validateDates = (start: string, end: string) => {
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
+  const validateDateRange = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
 
-    if (startDate < currentDate) {
-      toast.error("Start date cannot be in the past.");
-      return false;
-    }
     if (endDate < startDate) {
       toast.error("End date cannot be before start date.");
       return false;
@@ -309,7 +303,7 @@ export default function CreateCompetitionModal({
       return;
     }
 
-    if (!validateDates(competition.startDate, competition.endDate)) {
+    if (!validateDateRange(competition.startDate, competition.endDate)) {
       return;
     }
 
@@ -612,7 +606,6 @@ export default function CreateCompetitionModal({
                 }}
                 placeholder="Select start date"
                 disabled={isLoading}
-                min={new Date().toISOString().split("T")[0]}
               />
               {errors.startDate && (
                 <p className="text-red-600 text-sm">
@@ -641,10 +634,9 @@ export default function CreateCompetitionModal({
                 }}
                 placeholder="Select end date"
                 disabled={isLoading}
-                min={
-                  competition.startDate ||
-                  new Date().toISOString().split("T")[0]
-                }
+                {...(competition.startDate
+                  ? { min: competition.startDate }
+                  : {})}
               />
               {errors.endDate && (
                 <p className="text-red-600 text-sm">
