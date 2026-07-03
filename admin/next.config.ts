@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 function supabaseStorageRemotePattern(): {
   protocol: "https";
@@ -23,6 +27,9 @@ function supabaseStorageRemotePattern(): {
 const supabasePattern = supabaseStorageRemotePattern();
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: appRoot,
+  },
   images: {
     remotePatterns: [
       ...(supabasePattern ? [supabasePattern] : []),

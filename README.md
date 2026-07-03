@@ -5,7 +5,7 @@ This repository contains two Next.js applications (`admin` and `client`) and use
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18.8+)
+- Node.js (v20+)
 - [pnpm](https://pnpm.io/) package manager
 
 ### Environment Setup
@@ -45,6 +45,81 @@ pnpm dev
 ```
 
 Next.js will automatically run the apps on `http://localhost:3000` and `http://localhost:3001` if dev servers are running concurrently.
+
+---
+
+## Deploy on Vercel
+
+This repo is a **monorepo with two independent Next.js apps**. Deploy each app as its own Vercel project, pointing at the same Git repository with a different **Root Directory**.
+
+| Vercel project | Root Directory | Typical domain |
+|----------------|----------------|----------------|
+| Admin (dashboard / BFF) | `admin` | e.g. `admin.theathleticagency.net` |
+| Client (public site) | `client` | e.g. `theathleticagency.net` |
+
+### 1. Create the projects
+
+1. Import the repository in [Vercel](https://vercel.com/new).
+2. Create **two** projects from the same repo.
+3. For each project, set **Root Directory** to `admin` or `client` (Vercel will detect `vercel.json` and Next.js automatically).
+4. Vercel uses **pnpm** via each app’s `pnpm-lock.yaml` and `packageManager` field. Node **20** is pinned via `.nvmrc`.
+
+### 2. Environment variables
+
+Copy from `admin/.env.example` and `client/.env.example`. Set these in **Project → Settings → Environment Variables** for Production (and Preview/Development as needed).
+
+**Admin (`admin/.env.example`)**
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Browser-safe Supabase key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only; powers `/api/admin` BFF |
+| `NEXT_PUBLIC_SITE_URL` | Yes (prod) | Public admin URL, e.g. `https://admin.example.com` |
+| `NEXT_PUBLIC_API_BASE_URL` | Recommended | Usually same as `NEXT_PUBLIC_SITE_URL` on Vercel (admin hosts its own API routes) |
+| `NEXT_PUBLIC_SPACES_BASE_URL` | Optional | Legacy asset CDN base |
+
+**Client (`client/.env.example`)**
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `NEXT_PUBLIC_SPORTS_API_URL` | Yes | Sports/statistics API origin |
+| `NEXT_PUBLIC_CMS_API_URL` | Recommended | CMS/content API origin (falls back to sports URL) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Browser-safe Supabase key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only Supabase access |
+| `NEXT_PUBLIC_ADMIN_URL` | Recommended | Public admin URL for collator/player links |
+| `FORMSPREE_ENDPOINT` | If using contact forms | Server-only |
+| `NEXT_PUBLIC_CMS_TOKEN` | If CMS requires auth | Public CMS token |
+| `NEXT_PUBLIC_STORAGE_URL` | Optional | Override storage URL prefix |
+
+### 3. Supabase auth redirects
+
+In **Supabase → Authentication → URL Configuration**, add redirect URLs for each deployed admin origin:
+
+- `https://<admin-domain>/auth/callback`
+- Preview deployments: `https://<branch>-<project>.vercel.app/auth/callback`
+
+Set **Site URL** to your production admin domain. `NEXT_PUBLIC_SITE_URL` should match in Vercel.
+
+### 4. Cross-linking admin and client
+
+- **Client** → set `NEXT_PUBLIC_ADMIN_URL` to the admin production URL.
+- **Admin** → set `NEXT_PUBLIC_SITE_URL` (and usually `NEXT_PUBLIC_API_BASE_URL`) to the admin production URL.
+
+### 5. Verify before merging
+
+Both apps must build locally (same check as the pre-push hook):
+
+```bash
+cd client && pnpm install && pnpm build
+cd ../admin && pnpm install && pnpm build
+```
+
+### Notes
+
+- Admin enables **50 MB server actions** in `next.config.ts`; Vercel’s platform limits may still apply to very large uploads.
+- Do not commit `.env.local`; only `.env.example` templates are tracked in git.
 
 ---
 
