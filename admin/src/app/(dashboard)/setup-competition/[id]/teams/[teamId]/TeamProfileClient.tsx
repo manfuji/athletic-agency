@@ -263,7 +263,7 @@ export default function TeamProfileClient({
                     onClick={() => setIsExistingPlayerModalOpen(true)}
                     className="font-inter text-[14px] font-medium text-[#344054]"
                   >
-                    Add existing player
+                    Add or move player
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

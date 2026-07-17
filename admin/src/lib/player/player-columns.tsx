@@ -9,6 +9,7 @@ export type ExistingPlayerType = {
   id: string;
   name: string;
   icon: string;
+  currentTeam: string | null;
 };
 
 export const cols: ColumnDef<ExistingPlayerType>[] = [
@@ -36,7 +37,7 @@ export const cols: ColumnDef<ExistingPlayerType>[] = [
   },
   {
     accessorKey: 'name',
-    header: 'Select existing player to add to the team',
+    header: 'Select players to add or move to this team',
     cell: ({ row }: CellContext<ExistingPlayerType, unknown>) => {
       return (
         <div className="flex items-center gap-2">
@@ -48,7 +49,14 @@ export const cols: ColumnDef<ExistingPlayerType>[] = [
             height={40}
             className="rounded-full"
           />
-          <span>{row.original.name}</span>
+          <div className="flex flex-col">
+            <span>{row.original.name}</span>
+            <span className="text-xs text-gray-500">
+              {row.original.currentTeam
+                ? `Current team: ${row.original.currentTeam}`
+                : 'No team'}
+            </span>
+          </div>
         </div>
       );
     },

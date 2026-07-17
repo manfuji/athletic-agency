@@ -67,6 +67,22 @@ export async function fetchAllPlayersWithoutTeam(): Promise<Player[]> {
   return all;
 }
 
+/** All players across pages (for add/move-to-team flows). */
+export async function fetchAllPlayersAcrossPages(): Promise<Player[]> {
+  let page = 1;
+  let lastPage = 1;
+  const all: Player[] = [];
+
+  while (page <= lastPage) {
+    const result = await fetchAllPlayers(page);
+    all.push(...result.data);
+    lastPage = result.last_page;
+    page += 1;
+  }
+
+  return all;
+}
+
 export async function fetchPlayer(playerId: string, competitionId?: string) {
   try {
     // Build URL with optional competition_id query parameter

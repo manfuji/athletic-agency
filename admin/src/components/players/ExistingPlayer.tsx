@@ -12,7 +12,11 @@ import CustomButton from "@/reusables/CustomButton";
 import { cols } from "@/lib/player/player-columns";
 import { ExistingDataTable } from "@/lib/player/player-data-table";
 import { toast } from "sonner";
-import { addExistingPlayers, fetchAllPlayersWithoutTeam } from "@/actions/players";
+import {
+  addExistingPlayers,
+  fetchAllPlayersAcrossPages,
+} from "@/actions/players";
+import { fetchAllTeams } from "@/actions/teams";
 import { getImageUrl } from "@/lib/api";
 
 interface ExistingPlayerModalProps {
@@ -22,11 +26,12 @@ interface ExistingPlayerModalProps {
   onPlayersAdded?: () => void;
 }
 
-interface Player {
+interface PlayerRow {
   id: string;
   name: string;
   profile_picture: string | null;
   team_id: string | null;
+  currentTeam: string | null;
 }
 
 export default function ExistingPlayer({
@@ -35,7 +40,7 @@ export default function ExistingPlayer({
   teamId,
   onPlayersAdded,
 }: ExistingPlayerModalProps) {
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,14 +51,26 @@ export default function ExistingPlayer({
     const loadPlayers = async () => {
       try {
         setLoading(true);
-        const data = await fetchAllPlayersWithoutTeam();
-        const availablePlayers = data
-          .filter((player: Player) => !player.team_id)
-          .map((player: Player) => ({
+        setSelectedPlayerIds([]);
+        const [allPlayers, teams] = await Promise.all([
+          fetchAllPlayersAcrossPages(),
+          fetchAllTeams(),
+        ]);
+        const teamNameById = new Map(
+          teams.map((team) => [team.id, team.name] as const)
+        );
+
+        // Include unassigned players and players on other teams (for move/reassign).
+        const availablePlayers = allPlayers
+          .filter((player) => player.team_id !== teamId)
+          .map((player) => ({
             id: player.id,
             name: player.name,
             profile_picture: player.profile_picture,
             team_id: player.team_id,
+            currentTeam: player.team_id
+              ? teamNameById.get(player.team_id) ?? "Unknown team"
+              : null,
           }));
         setPlayers(availablePlayers);
       } catch {
@@ -64,7 +81,7 @@ export default function ExistingPlayer({
       }
     };
     loadPlayers();
-  }, [isOpen]);
+  }, [isOpen, teamId]);
 
   const handleRowSelectionChange = (rowSelection: Record<string, boolean>) => {
     const selectedIds = Object.keys(rowSelection)
@@ -87,8 +104,18 @@ export default function ExistingPlayer({
         toast.error(res.error);
         return;
       }
-      toast.success("Players Added Successfully", {
-        description: `${selectedPlayerIds.length} player(s) added to the team.`,
+      const movingCount = selectedPlayerIds.filter((id) => {
+        const player = players.find((p) => p.id === id);
+        return Boolean(player?.team_id);
+      }).length;
+      const addingCount = selectedPlayerIds.length - movingCount;
+
+      const parts: string[] = [];
+      if (addingCount > 0) parts.push(`${addingCount} added`);
+      if (movingCount > 0) parts.push(`${movingCount} moved`);
+
+      toast.success("Players updated", {
+        description: `${parts.join(", ")} to this team.`,
       });
       onPlayersAdded?.();
       onClose();
@@ -113,7 +140,7 @@ export default function ExistingPlayer({
       <DialogContent className="max-h-[95vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="text-[24px] font-evogria font-normal text-[#000000] dark:text-white">
-            ADD EXISTING PLAYERS
+            ADD OR MOVE PLAYERS
           </DialogTitle>
         </DialogHeader>
         {loading ? (
@@ -121,7 +148,7 @@ export default function ExistingPlayer({
         ) : players.length === 0 ? (
           <div className="text-center p-6 bg-gray-100 border border-gray-300 rounded-lg">
             <p className="text-lg text-gray-600 font-semibold font-inter">
-              There are currently no players with no team.
+              There are no other players available to add or move.
             </p>
           </div>
         ) : (
@@ -131,6 +158,7 @@ export default function ExistingPlayer({
               id: player.id,
               name: player.name,
               icon: getImageUrl(player.profile_picture) || "/Avatar.svg",
+              currentTeam: player.currentTeam,
             }))}
             onRowSelectionChange={handleRowSelectionChange}
           />
@@ -145,7 +173,7 @@ export default function ExistingPlayer({
             className="hover:bg-white"
           />
           <CustomButton
-            text="ADD PLAYERS"
+            text="ADD / MOVE PLAYERS"
             bgColor={isButtonDisabled ? "bg-gray-400" : "bg-[#302464]"}
             className={`text-white ${
               isButtonDisabled

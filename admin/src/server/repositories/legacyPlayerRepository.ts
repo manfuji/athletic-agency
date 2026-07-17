@@ -139,9 +139,10 @@ export class LegacyPlayerSupabaseRepository implements ILegacyPlayerRepository {
     const name = String(row.player_name ?? "").trim();
     if (!name) throw new ServiceError("Bio data is missing player_name", 400);
 
+    // Leave team unassigned so admins can place players onto teams they create.
     const insertRow: Record<string, unknown> = {
       name,
-      team_id: (row.team_id as string | null) ?? null,
+      team_id: null,
       dob: (row.dob as string | null) ?? null,
       position: (row.position as string | null) ?? null,
       nationality: (row.nationality as string | null) ?? null,

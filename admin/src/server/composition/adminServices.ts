@@ -17,6 +17,7 @@ import { LegacyTableSupabaseRepository } from "@/server/repositories/legacyTable
 import { VideoVerificationSupabaseRepository } from "@/server/repositories/videoVerificationRepository";
 import { OpsTableSupabaseRepository } from "@/server/repositories/opsTableRepository";
 import { ApiKeySupabaseRepository } from "@/server/repositories/apiKeyRepository";
+import { DataFormSupabaseRepository } from "@/server/repositories/dataFormRepository";
 import { GroupSupabaseRepository } from "@/server/repositories/groupRepository";
 import { LegacyPlayerSupabaseRepository } from "@/server/repositories/legacyPlayerRepository";
 import { MatchSupabaseRepository } from "@/server/repositories/matchRepository";
@@ -43,6 +44,7 @@ import { LegacyTableService } from "@/server/services/legacyTableService";
 import { VideoVerificationService } from "@/server/services/videoVerificationService";
 import { OpsTableService } from "@/server/services/opsTableService";
 import { ApiKeyService } from "@/server/services/apiKeyService";
+import { DataFormService } from "@/server/services/dataFormService";
 import { GroupService } from "@/server/services/groupService";
 import { LegacyPlayerService } from "@/server/services/legacyPlayerService";
 import { MatchService } from "@/server/services/matchService";
@@ -85,6 +87,7 @@ export function getAdminServices() {
   const videoVerificationRepo = new VideoVerificationSupabaseRepository(db);
   const opsTableRepo = new OpsTableSupabaseRepository(db);
   const apiKeyRepo = new ApiKeySupabaseRepository(db);
+  const dataFormRepo = new DataFormSupabaseRepository(db);
   const competitionImportRepo = new CompetitionImportSupabaseRepository(db);
 
   const teamService = new TeamService(teamRepo, storageRepo);
@@ -103,6 +106,7 @@ export function getAdminServices() {
   const videoVerificationService = new VideoVerificationService(videoVerificationRepo);
   const opsTableService = new OpsTableService(opsTableRepo, qaLogService);
   const apiKeyService = new ApiKeyService(apiKeyRepo);
+  const dataFormService = new DataFormService(dataFormRepo);
 
   return {
     teamService,
@@ -137,5 +141,6 @@ export function getAdminServices() {
     videoVerificationService,
     opsTableService,
     apiKeyService,
+    dataFormService,
   };
 }
